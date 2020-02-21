@@ -17,13 +17,11 @@ module.exports = Object.assign({}, base, {
     validateSuccess: async function (page) {
         let startTime = Date.now();
         while (true) {
-            let length1 = await page.evaluate(function () {
-                return document.getElementsByClassName('article-content').length;
+            let priceText = await page.evaluate(function () {
+                var priceSpan = document.querySelector('.summary-price-wrap .p-price .price');
+                return priceSpan && priceSpan.innerHTML;
             });
-            let length2 = await page.evaluate(function () {
-                return document.getElementsByClassName('galleryBox').length;
-            });
-            if (length1 + length2 > 0) {
+            if (('' + priceText).trim()) {
                 return true;
             }
             //timeout
@@ -34,12 +32,12 @@ module.exports = Object.assign({}, base, {
     },
     getResult: async function (page) {
         return await page.evaluate(() => {
-            var content = document.getElementsByClassName('article-content');
-            if (content.length === 0) {
-                content = document.getElementsByClassName('galleryBox');
-            }
-
-            return content[0].innerHTML;
+            var nameSpan = document.querySelector('.sku-name');
+            var priceSpan = document.querySelector('.summary-price-wrap .p-price .price');
+            return {
+               name:nameSpan.innerText,
+               price:priceSpan.innerText 
+            };
         });
     }
 });

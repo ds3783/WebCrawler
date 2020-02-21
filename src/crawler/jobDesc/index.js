@@ -4,6 +4,7 @@ const path = require('path');
 const alias = {
 
     'TOUTIAO_NEWS_DETAIL': 'toutiao.newsDetail',
+    'JD_ITEM_PRICE': 'jd.itemPrice',
 };
 
 let descriptions = {};

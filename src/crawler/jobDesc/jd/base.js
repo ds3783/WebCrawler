@@ -1,6 +1,6 @@
 module.exports = {
     initialJob: function (job) {
-        job.headlessBrowser = false;
+        job.headlessBrowser = true;
     },
     setPageContext: async function (page) {
     },
@@ -15,7 +15,7 @@ module.exports = {
         "use strict";
         let url = request.url();
         // return true;
-        let validDomain = (/^(http(s)?:\/\/[^\/]*toutiao\.com\/.*)|(http(s)?:\/\/[^\/]*pstatp\.com\/.*)|(http(s)?:\/\/[^\/]*moatads\.com\/.*)$/.test(url));
+        let validDomain = (/^(http(s)?:\/\/[^\/]*jd\.com\/.*)|(http(s)?:\/\/[^\/]*360buyimg\.com\/.*)|(http(s)?:\/\/[^\/]*3\.cn\/.*)$/.test(url));
         let invalidFile = /(\.gif|\.png|\.jpg|\.svg)(\?.*)?$|\/collector|\/dfic-imagehandler|\/large|\/pgc-image\//.test(url);
         let result = validDomain && (!invalidFile);
         // console.log(url,result?'passed':'blocked',validDomain,invalidFile);

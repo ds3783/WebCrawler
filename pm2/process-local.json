@@ -1,0 +1,22 @@
+{
+    "apps": [
+        {
+            "name": "Local",
+            "script": "./src/bin/www",
+            "watch": false,
+            "instances": 1,
+            "exec_mode": "fork",
+            "node_args": "--harmony --expose-gc --max-old-space-size=768",
+            "error_file": "./logs/err.log",
+            "out_file": "./logs/out.log",
+            "merge_logs": true,
+            "log_date_format": "YYYY-MM-DD HH:mm:ss",
+            "env": {
+                "MANIFEST": "local",
+                "INSTANCE_NAME": "local",
+                "DEV_MODE": "development",
+                "PORT": 3100
+            }
+        }
+    ]
+}

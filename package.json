@@ -19,7 +19,7 @@
     "nestia-web": "^1.1.38",
     "node-cron": "^2.0.3",
     "node-gyp": "^5.0.0",
-    "puppeteer": "^1.17.0",
+    "puppeteer": "1.17.0",
     "uuid": "^3.3.2"
   }
 }

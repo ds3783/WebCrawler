@@ -108,3 +108,10 @@ dist
 
 #IDEA project file
 .idea
+
+#Chrome cache data
+.data/*
+chromeData
+
+
+package-lock.json
