@@ -2,41 +2,8 @@ const fs = require('fs');
 const path = require('path');
 
 const alias = {
-    'BAIDU_TEST': 'baidu.www',
-    'ASIATIMES_LIST': 'asiatimes.newsList',
-    'SCMP_DETAIL': 'scmp.newsDetail',
-    'CHANNELNEWSASIA_DETAIL': 'channelnewsasia.newsDetail',
-    'TOUTIAO_HAIWAI_LIST': 'toutiao.newsList',
-    'TOUTIAO_CHANNEL_LIST': 'toutiao.channelList',
+
     'TOUTIAO_NEWS_DETAIL': 'toutiao.newsDetail',
-    'YIDIANZIXUN_CHANNEL_LIST': 'yidianzixun.channelList',
-    'KWONGWAH_LIST': 'kwongwah.newsList',
-    'KWONGWAH_DETAIL': 'kwongwah.newsDetail',
-    'YAHOO_NEWS_LIST': 'yahoo.newsList',
-    'BLOOMBERG_ASIA_LIST': 'bloomberg.asia',
-    'BLOOMBERG_DETAIL': 'bloomberg.detail',
-    'MS_NEWS_LIST': 'mothership.newsList',
-    'MS_NEWS_DETAIL': 'mothership.newsDetail',
-    'NST_NEWS_LIST': 'nst.newsNation',
-    'NST_NEWS_DETAIL': 'nst.newsDetail',
-    'PG_AGENT_LIST': 'pg.agentList',
-    'PG_AGENT_DETAIL': 'pg.agentDetail',
-    'PG_PROPERTY_DETAIL': 'pg.propertyDetail',
-    'PG_CONDO_LIST': 'pg.condoList',
-    'PG_COMMERCIAL_PROJECT_LIST': 'pg.commercialProjectList',
-    'PG_COMMERCIAL_AGENT_DETAIL': 'pg.commercialAgentDetail',
-    'PG_COMMERCIAL_PROPERTY_DETAIL': 'pg.commercialPropertyDetail',
-    'ULIFESTYLE_NEWS_LIST': 'ulifestyle.newsList',
-    'WEIXIN_NEWS_LIST': 'wechat.newsList',
-    'WEIXIN_NEWS_LIST2': 'wechat.newsList2',
-    'NYTIMES_LATEST_LIST': 'nytimes.latestList',
-    'NYTIMES_LATEST_FRAME_LIST': 'nytimes.latestListWithFrame',
-    'SAVEFROM_YOUTUBE': 'savefrom.youtube',
-    'SHICHENGNEWS_LIST': 'shichengnews.newsList',
-    'SHICHENGNEWS_DETAIL': 'shichengnews.newsDetail',
-    'SHICHENGNEWS_IMAGE': 'shichengnews.image',
-    'YOUTUBE_VIDEO_PAGE': 'youtube.videoPage',
-    'MOH_COVID19': 'moh.covid19',
 };
 
 let descriptions = {};
