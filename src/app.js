@@ -11,7 +11,6 @@ const app = express();
 
 const crawler = require('./crawler');
 const Browser = require('./browser');
-const MovieAgent = require('./movieAgent');
 
 const MiniProxy = require('./browser/miniProxy');
 
@@ -250,12 +249,6 @@ if (Browser && Browser.init) {
 if (crawler && crawler.init) {
     crawler.init();
     app.locals.crawler = crawler;
-}
-
-//init movie agent
-
-if (MovieAgent && MovieAgent.init) {
-    MovieAgent.init();
 }
 
 module.exports = app;
