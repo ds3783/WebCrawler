@@ -1,0 +1,25 @@
+{
+  "name": "browser-crawler",
+  "version": "1.0.0",
+  "description": "Crawler job executor with browser features.",
+  "main": "bin/server.js",
+  "scripts": {
+    "server": "NODE_PATH=/usr/lib/node_modules node ./src/bin/start.js dev",
+    "start": "NODE_PATH=/usr/lib/node_modules node ./src/bin/start.js",
+    "stop": "NODE_PATH=/usr/lib/node_modules node ./src/bin/stop.js"
+  },
+  "author": "",
+  "private": true,
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "file-stream-rotator": "^0.2.1",
+    "https-proxy-agent": "^2.2.1",
+    "morgan": "^1.9.0",
+    "nestia-web": "^1.1.38",
+    "node-cron": "^2.0.3",
+    "node-gyp": "^5.0.0",
+    "puppeteer": "^1.17.0",
+    "uuid": "^3.3.2"
+  }
+}

@@ -1,0 +1,10 @@
+const SESSION_STATE = {
+    'INIT': 'INITIALIZED',
+    'SEAT_SELECT': 'SEAT_SELECT',
+    'WAIT_PAYMENT': 'WAIT_PAYMENT',
+    'PAYED': 'PAYED',
+    'COMPLETE': 'COMPLETE',
+};
+
+
+module.exports = SESSION_STATE;

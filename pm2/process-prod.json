@@ -1,0 +1,22 @@
+{
+    "apps": [
+        {
+            "name": "Prod",
+            "script": "./src/bin/www",
+            "watch": false,
+            "instances": 1,
+            "exec_mode": "fork",
+            "node_args": "--harmony --expose-gc --max-old-space-size=768",
+            "error_file": "./logs/err.log",
+            "out_file": "./logs/out.log",
+            "merge_logs": true,
+            "log_date_format": "YYYY-MM-DD HH:mm:ss",
+            "env": {
+                "MANIFEST": "prod",
+                "INSTANCE_NAME": "prod",
+                "DEV_MODE": "production",
+                "PORT": 3000
+            }
+        }
+    ]
+}

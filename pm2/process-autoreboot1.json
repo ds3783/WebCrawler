@@ -1,0 +1,19 @@
+{
+  "apps": [
+    {
+      "name": "Auto-Reboot-daemon",
+      "script": "./src/bin/autoreboot.js",
+      "watch": false,
+      "instances": 1,
+      "exec_mode": "fork",
+      "node_args": "--harmony --expose-gc --max-old-space-size=768",
+      "error_file": "./logs/autoboot-err.log",
+      "out_file": "./logs/autoboot.log",
+      "merge_logs": true,
+      "log_date_format": "YYYY-MM-DD HH:mm:ss",
+      "env": {
+        "INSTANCE": "Prod1"
+      }
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+const app = require('../app');
+const http = require('http');
+const NestiaWeb = require('nestia-web');
+/**
+ * Get port from environment and store in Express.
+ */
+const host = process.env.HOST || NestiaWeb.manifest.get('host', true) || '0.0.0.0';
+let port = normalizePort(process.env.PORT || NestiaWeb.manifest.get('port', true) || '3000');
+
+
+let formatTime = function () {
+    "use strict";
+    let now = new Date();
+    return now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate() + ' ' + now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds() + '.' + now.getMilliseconds();
+};
+
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+const server = http.createServer(app);
+
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+server.listen(port, host);
+server.on('error', onError);
+server.on('listening', onListening);
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+    let port = parseInt(val, 10);
+
+    if (isNaN(port)) {
+        // named pipe
+        return val;
+    }
+
+    if (port >= 0) {
+        // port number
+        return port;
+    }
+
+    return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+    if (error.syscall !== 'listen') {
+        throw error;
+    }
+
+    let addr = this.address() || {address: host, port: port};
+    let bind = typeof port === 'string'
+        ? 'Pipe ' + port
+        : addr.address + ':' + addr.port;
+
+    console.error(error.message, error);
+    // handle specific listen errors with friendly messages
+    switch (error.code) {
+        case 'EACCES':
+            console.error(bind + ' requires elevated privileges');
+            process.exit(1);
+            break;
+        case 'EADDRINUSE':
+            console.error(bind + ' is already in use');
+            process.exit(1);
+            break;
+        default:
+            throw error;
+    }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+    let addr = this.address();
+    let bind = typeof addr === 'string'
+        ? ' pipe ' + addr
+        : addr.address + ':' + addr.port;
+
+    let logger = NestiaWeb.logger;
+    console.log('APP started,listening on ' + bind);
+    logger.fatal(formatTime() + ' APP started,listening on ' + bind);
+}
+
+
+process.on('SIGINT', function () {
+    "use strict";
+    let logger = NestiaWeb.logger;
+    logger.fatal(formatTime() + ' SIGINT received,exiting in 3 seconds....');
+    NestiaWeb.onShutdown();
+
+    let timeout = NestiaWeb.manifest.get('type') !== 'development' ? 300 : 30;
+    setTimeout(() => {
+        NestiaWeb.logger.fatal('Sending exit signal.');
+        process.exit(0);
+    }, timeout);
+
+});
