@@ -9,7 +9,7 @@ const Browser = require('../browser');
 const NestiaWeb = require('nestia-web');
 
 // const R = require('../misc/generReceipts');
-const R = require('../misc/screenShot');
+// const R = require('../misc/screenShot');
 const MAX_CRACK_RETRY = 3;
 const COOL_DOWN_TIME = 300 * 1e3; //5min cd
 
