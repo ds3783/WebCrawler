@@ -56,7 +56,7 @@ router.post('/start', function (req, res) {
                     /*res.setHeader('content-type', 'application/json');
                     res.write(JSON.stringify(result));
                     res.end();*/
-                    res.send(result);
+                    res.send(JSON.stringify(result,null,4));
                 });
                 crawler.start(context).catch(e => {
                     crawler.unregisterCallback(context.id);
