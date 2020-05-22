@@ -1,6 +1,6 @@
 module.exports = {
     initialJob: function (job) {
-        job.headlessBrowser = true;
+        job.headlessBrowser = false;
     },
     setPageContext: async function (page) {
     },
