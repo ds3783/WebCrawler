@@ -1,43 +1,9 @@
-const base = require('./base');
-
-
-const sleep = function (time) {
-    return new Promise((resolve => {
-        setTimeout(function () {
-            resolve();
-        }, time);
-    }));
-};
-
-module.exports = Object.assign({}, base, {
-    isJobDesc: true,
-    getNavigateOptions: function () {
-        return {waitUntil: 'domcontentloaded'};
-    },
-    validateSuccess: async function (page) {
-        let startTime = Date.now();
-        while (true) {
-            let priceText = await page.evaluate(function () {
-                var priceSpan = document.querySelector('.summary-price-wrap .p-price .price');
-                return priceSpan && priceSpan.innerHTML;
-            });
-            if (('' + priceText).trim()) {
-                return true;
-            }
-            //timeout
-            if (Date.now() - startTime > 30000) {
-                return false;
-            }
-        }
-    },
-    getResult: async function (page) {
-        return await page.evaluate(() => {
-            var nameSpan = document.querySelector('.sku-name');
-            var priceSpan = document.querySelector('.summary-price-wrap .p-price .price');
-            return {
-               name:nameSpan.innerText,
-               price:priceSpan.innerText 
-            };
-        });
-    }
-});
+var a = {
+  "result": true,
+  "message": "",
+  "data": {
+    "name": "Apple iPhone 11 (A2223) 128GB 黑色 移动联通电信4G手机 双卡双待",
+    "price": "5999.00"
+  },
+  "url": "https://item.jd.com/100008348542.html"
+}
