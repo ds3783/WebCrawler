@@ -1,5 +1,5 @@
 const path = require('path');
-const NestiaWeb = require('nestia-web');
+const NestiaWeb = require("nestia-web");
 const EventEmitter = require('events').EventEmitter;
 const PageFactory = require('../browser/pageFactory');
 const Browser = require('../browser');
@@ -152,7 +152,7 @@ async function doJob(job, ctx) {
 
         if (typeof jobDesc.responseFilter === 'function') {
           try {
-            
+
             let responseContent = await response.text();
             let result = await jobDesc.responseFilter(response, responseContent);
             // 根据jobDesc判断是否存在后续操作
@@ -177,6 +177,7 @@ async function doJob(job, ctx) {
                 process.nextTick(function () {
                   clearTimeout(timeout);
                   clearInterval(interval);
+                  interval = null;
                   page.removeAllListeners('load');
                   page.removeAllListeners('request');
                   page.removeAllListeners('response');
@@ -300,9 +301,6 @@ async function doJob(job, ctx) {
   };
 
   registerEvents();
-  /*page.on('console', (c) => {
-      // NestiaWeb.logger.info(job.id + ':page console+' + c);
-  });*/
 
 
   let busy = false, interval = null;
@@ -315,6 +313,7 @@ async function doJob(job, ctx) {
       let url = await page.url();
       await callback(job, page, false, 'timeout', null, url);
       clearInterval(interval);
+      interval = null;
       await cleanJob(job, page);
     })();
   }, JOB_TIMEOUT);
@@ -366,6 +365,7 @@ async function doJob(job, ctx) {
             NestiaWeb.logger.info(job.id + ':page test success');
             clearTimeout(timeout);
             clearInterval(interval);
+            interval = null;
             //返回抓取结果
             result = await jobDesc.getResult(page, job);
           }
@@ -436,6 +436,7 @@ async function doJob(job, ctx) {
             job.status = 'finished';
             clearTimeout(timeout);
             clearInterval(interval);
+            interval = null;
             await cleanJob(job, page);
           }
         }
@@ -444,8 +445,6 @@ async function doJob(job, ctx) {
     })();
 
   }, 50);
-
-
 }
 
 

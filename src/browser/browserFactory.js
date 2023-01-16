@@ -3,9 +3,9 @@ const NestiaWeb = require('nestia-web');
 const fs = require('fs');
 const path = require('path');
 const BrowserDesc = require('./browserDesc');
-const uuidv1 = require('uuid/v1');
+const uuid = require('uuid');
 const Luminati = require('./LuminatiProxy');
-
+const uuidv1 = uuid.v1;
 
 // a browser survive max for 7 minutes
 const MAX_BROWSER_SURVIVE_TIME = 7 * 60 * 1E3;
@@ -112,7 +112,7 @@ const generateBrowserParameter = async function (job) {
   args.push('--ash-host-window-bounds=' + browserDesc.viewport.width + 'x' + browserDesc.viewport.height);
   args.push('--disable-web-security');
   let id = uuidv1();
-  let proxyProvider = '';
+  let proxyProvider;
   if (job.proxy_host && job.proxy_port) {
     let isLuminati = await Luminati.isLuminatiProxy(job.proxy_host, job.proxy_port);
     if (isLuminati) {
@@ -322,7 +322,7 @@ module.exports = {
 
     }
   },
-  markUnavailable: async function (key, id, force) {
+  markUnavailable: async function (key, id) {
 // 标记浏览器实例失效，下次清理时将被关闭
     let cache = null;
     if (browserCache.hasOwnProperty(key)) {
@@ -342,11 +342,11 @@ module.exports = {
   ,
   borrow: function (job) {
     "use strict";
-//借出一个新页面
+    //借出一个新页面
     return new Promise(function (resolve, reject) {
-// 获得参数，包括屏幕分辨率，user-agent，和启动参数
+      // 获得参数，包括屏幕分辨率，user-agent，和启动参数
       generateBrowserParameter(job).then(function (parameters) {
-// 查询cache
+        // 查询cache
         if (browserCache.hasOwnProperty(parameters.key)) {
           let browserArr = browserCache[parameters.key];
           for (let browser of browserArr) {
