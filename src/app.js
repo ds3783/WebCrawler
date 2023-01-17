@@ -129,9 +129,6 @@ app.use(function (req, res, next) {
 });
 
 
-app.use('*/healthcheck.html', express.static(path.join(__dirname, '../healthcheck.html'), {
-    fallthrough: false
-}));
 
 // uncomment after placing your favicon in /public
 app.use(bodyParser.json());
@@ -161,6 +158,9 @@ app.use(bodyParser.urlencoded({limit: '10mb', extended: false}));
 })();
 
 
+app.use('*/healthcheck.html', express.static(path.join(__dirname, '../healthcheck.html'), {
+    fallthrough: false
+}));
 // development error handler
 // will print stacktrace           
 app.use(function (err, req, res, next) {

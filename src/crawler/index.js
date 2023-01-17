@@ -52,17 +52,17 @@ let staticJobs = {};
 (function () {
     "use strict";
     let dir = path.join(__dirname, 'staticJob');
-
-    let files = fs.readdirSync(dir);
-    for (let file of files) {
-        let fullPath = path.join(dir, file);
-        let fileState = fs.lstatSync(fullPath);
-        if (!fileState.isDirectory() && /^.*\.js$/.test(file)) {
-            let job = require(fullPath);
-            staticJobs[job.key] = job;
+    if (fs.existsSync(dir)) {
+        let files = fs.readdirSync(dir);
+        for (let file of files) {
+            let fullPath = path.join(dir, file);
+            let fileState = fs.lstatSync(fullPath);
+            if (!fileState.isDirectory() && /^.*\.js$/.test(file)) {
+                let job = require(fullPath);
+                staticJobs[job.key] = job;
+            }
         }
     }
-
 })();
 
 
