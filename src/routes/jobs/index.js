@@ -42,6 +42,7 @@ router.post('/start', function (req, res) {
         proxy_port: params.proxy_port,
         type: params.type,
         sync: params.sync > 0,
+        callback: params.callback,
         params: (params.params && JSON.parse(params.params)) || {},
     };
     if (!crawler) {
@@ -56,7 +57,7 @@ router.post('/start', function (req, res) {
                     /*res.setHeader('content-type', 'application/json');
                     res.write(JSON.stringify(result));
                     res.end();*/
-                    res.send(JSON.stringify(result,null,4));
+                    res.send(JSON.stringify(result, null, 4));
                 });
                 crawler.start(context).catch(e => {
                     crawler.unregisterCallback(context.id);
@@ -65,6 +66,17 @@ router.post('/start', function (req, res) {
                     res.send({result: false, message: e.message});
                 });
             } else {
+                crawler.registerCallback(context.id, function (result) {
+                    NestiaWeb.logger.info('Async job complete, result status is ' + result.result + ' message:' + (result.message || '') + ':' + JSON.stringify(context, null, ''));
+                    if (context.callback) {
+                        NestiaWeb.logger.info('callback:' + context.callback);
+                        NestiaWeb.ajax.request({
+                            url: context.callback, method: 'POST', reqContentType: 'json', timeout: 30000, data: result
+                        }).catch(e => {
+                            NestiaWeb.logger.error('callback failed:' + e.message, e);
+                        });
+                    }
+                });
                 crawler.start(context).catch(e => {
                     NestiaWeb.logger.error('Error starting job:' + JSON.stringify(context, null, ''));
                     NestiaWeb.logger.error('Error:' + e.message, e);
@@ -86,11 +98,11 @@ router.post('/static', function (req, res) {
     const crawler = req.app.locals.crawler;
 
     let params = req.body || {};
-    let errors = [];
+    /*let errors = [];
     // params.id = crawler.generateId();
     if (!/^[\d,]+$/.test(params.id)) {
         errors.push('Invalid params:' + JSON.stringify(params));
-    }
+    }*/
 
 
     let context = {
