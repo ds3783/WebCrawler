@@ -1,7 +1,7 @@
 {
     "apps": [
         {
-            "name": "Prod",
+            "name": "WebCrawler",
             "script": "./src/bin/www",
             "watch": false,
             "instances": 1,
