@@ -1,5 +1,6 @@
 module.exports = {
     initialJob: function (job) {
+        job.direct_proxy = true;
         job.headlessBrowser = true;
     },
     setPageContext: async function (page) {

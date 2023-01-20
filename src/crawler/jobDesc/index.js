@@ -6,6 +6,7 @@ const alias = {
   'TOUTIAO_NEWS_DETAIL': 'toutiao.newsDetail',
   'JD_ITEM_PRICE': 'jd.itemPrice',
   'COMMON_HTML': 'common.html',
+  'COMMON_JSON': 'common.json',
 };
 
 let descriptions = {};
