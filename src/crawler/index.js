@@ -1,4 +1,5 @@
 const jobExecutor = require('./jobExecutor');
+const seoExecutor = require('./seoExecutor');
 const StatusShot = require('./diagnostic/statusShot');
 const CaptchaCracker = require('./captchaCracker');
 const utils = require('./utils');
@@ -160,6 +161,10 @@ module.exports = {
         let key = utils.getProxyKey(context) + '_' + utils.getDomain(context.url);
 
         return jobExecutor.startJob(context, domainStatus[key]);
+    },
+    startSeo: function (context) {
+
+        return seoExecutor.start(context);
     },
     generateId: function () {
         "use strict";

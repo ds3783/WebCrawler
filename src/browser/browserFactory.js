@@ -96,7 +96,7 @@ const shutdownBrowser = async function (browserDesc) {
 const generateBrowserParameter = async function (job) {
     let args = [];
 
-    let key = getBrowserKey(job);
+    let key = job.key || getBrowserKey(job);
     let headless = (typeof job.headlessBrowser === 'boolean' ? job.headlessBrowser : true);
     let browserDesc = BrowserDesc.getDesc();
     let useLocalProxy = false;
@@ -374,7 +374,7 @@ module.exports = {
                         userDataDir: dataDir,
                         handleSIGINT: false,
                         headless: parameters.headless,
-                        executablePath:executablePath(),
+                        executablePath: executablePath(),
                     }).then(b => {
                         b.__key = parameters.key;
                         b.__newPage = b.newPage;

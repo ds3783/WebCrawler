@@ -93,6 +93,65 @@ router.post('/start', function (req, res) {
     }
 });
 
+
+router.post('/seo', function (req, res) {
+    "use strict";
+    const crawler = req.app.locals.crawler;
+
+    let params = req.body.url ? req.body : req.query;
+    let errors = [];
+    params.id = crawler.generateId();
+    if (!/^http(s)?:\/\/.+$/.test(params.url)) {
+        errors.push('Invalid URL:' + params.url);
+    }
+    if (params.proxy_port && !params.proxy_port > 0) {
+        errors.push('Invalid proxy port:' + params.proxy_port);
+    }
+    if (!params.se_type) {
+        errors.push('Search engine type cannot be null');
+    }
+    if (!params.tags) {
+        errors.push('Tags type cannot be null');
+    }
+    if (errors.length > 0) {
+        res.status(400);
+        res.send({result: false, message: errors.join('\n')});
+        return;
+    }
+
+    let context = {
+        id: params.id * 1,
+        url: params.url,
+        direct_proxy: true,
+        proxy_host: params.proxy_host,
+        proxy_port: params.proxy_port,
+        se_type: params.se_type,
+        tags: params.tags,
+    };
+    if (!crawler) {
+        res.send({result: false, message: 'browser not initialized'});
+    } else {
+        try {
+            NestiaWeb.logger.info('Starting seo:' + JSON.stringify(context, null, ''));
+
+            crawler.startSeo(context)
+                .then(() => {
+                    NestiaWeb.logger.info('Seo job complete:' + JSON.stringify(context, null, ''));
+                }).catch(e => {
+                crawler.unregisterCallback(context.id);
+                NestiaWeb.logger.error('Error starting job:' + JSON.stringify(context, null, ''));
+                NestiaWeb.logger.error('Error:' + e.message, e);
+            });
+            res.send('ok');
+        } catch (e) {
+            crawler.unregisterCallback(context.id);
+            NestiaWeb.logger.error('Error starting job:' + JSON.stringify(context, null, ''));
+            NestiaWeb.logger.error('Error:' + e.message, e);
+            res.send({result: false, message: e.message});
+        }
+    }
+});
+
 router.post('/static', function (req, res) {
     "use strict";
     const crawler = req.app.locals.crawler;

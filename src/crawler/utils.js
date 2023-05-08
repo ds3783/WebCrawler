@@ -1,3 +1,4 @@
+const NestiaWeb = require("nestia-web");
 module.exports = {
     getProxyKey: function (context) {
         "use strict";
@@ -26,6 +27,44 @@ module.exports = {
             str = '0' + str;
         }
         return str;
+    },
+    fillForm: async function (page, selector, value) {
+        let domValue = '', startTime = Date.now();
+        do {
+            let domLen = await page.evaluate(function (selector) {
+                var elems = document.querySelectorAll(selector);
+                var elem = elems[0];
+                if (!elem) {
+                    return elems.length;
+                }
+                if (elem && elem.value) {
+                    elem.focus();
+                    elem.value = '';
+                }
+                return elems.length;
+            }, selector);
+            if (!domLen) {
+                throw new Error('Unable to find element by selector:' + selector);
+            }
+            await this.sleep(16);
+            domValue = await page.evaluate(function (selector) {
+                var elem = document.querySelector(selector);
+                if (elem && elem.value) {
+                    return elem.value;
+                }
+                return '';
+            }, selector);
+            if (!domValue) {
+                break;
+            }
+            if (Date.now() - startTime > 30000) {
+                break;
+            }
+        } while (true);
+        NestiaWeb.logger.debug('filling ' + selector);
+        await page.type(selector, '' + value, {delay: 30});
+        await this.sleep(100);
+        NestiaWeb.logger.debug('filled ' + selector,'with', value);
     },
     utilizeHeaders: function (headers) {
         "use strict";
@@ -92,5 +131,10 @@ module.exports = {
             result.push(cookieObj);
         }
         return result;
+    },
+    sleep: function (ms) {
+        return new Promise(function (resolve) {
+            setTimeout(resolve, ms);
+        });
     }
 };
