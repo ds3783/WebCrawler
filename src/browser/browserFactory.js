@@ -368,6 +368,7 @@ module.exports = {
                 {
                     // cache未命中，创建新浏览器实例
                     let dataDir = path.join(__dirname, '..', '..', 'chromeData', parameters.id);
+                    NestiaWeb.logger.info('Start launch browser[' + parameters.cmdArguments.join(',') + '] with dataDir[' + dataDir + ']');
                     puppeteer.launch({
                         ignoreHTTPSErrors: true,
                         args: parameters.cmdArguments,
