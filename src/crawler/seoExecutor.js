@@ -83,7 +83,11 @@ async function start(context) {
         await page.evaluate(() => {
             location.href = '/';
         });
+        NestiaWeb.logger.info('Redirected to home page');
         await utils.sleep(5000);
+        NestiaWeb.logger.info('Job done');
+    }else{
+        NestiaWeb.logger.info('No search result found, done.');
     }
 }
 
