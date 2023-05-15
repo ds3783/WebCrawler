@@ -49,7 +49,7 @@ async function start(context) {
     await page.waitForNavigation()
     await page.waitForSelector('div#main');
     //fetch the search results
-    let search_results = await page.evaluate(() => {
+    let search_results = await page.evaluate((domain) => {
         let results = [];
         let search_results = document.querySelectorAll('div#main div.g');
         if (search_results.length === 0) {
@@ -64,7 +64,7 @@ async function start(context) {
             } else {
                 url = url.innerText;
             }
-            if (/ds3783/.test(url)) {
+            if (url.indexOf(domain) > -1) {
                 result.setAttribute('id', 'that_is_it');
                 results.push({
                     title: title.innerText,
@@ -73,7 +73,7 @@ async function start(context) {
             }
         }
         return results;
-    });
+    }, context.domain);
     NestiaWeb.logger.info('Search results:' + JSON.stringify(search_results, null, ''));
     if (search_results.length > 0) {
         //click that_is_it
@@ -86,7 +86,7 @@ async function start(context) {
         NestiaWeb.logger.info('Redirected to home page');
         await utils.sleep(5000);
         NestiaWeb.logger.info('Job done');
-    }else{
+    } else {
         NestiaWeb.logger.info('No search result found, done.');
     }
 }

@@ -110,6 +110,9 @@ router.post('/seo', function (req, res) {
     if (!params.se_type) {
         errors.push('Search engine type cannot be null');
     }
+    if (!params.domain) {
+        errors.push('Domain cannot be null');
+    }
     if (!params.tags) {
         errors.push('Tags type cannot be null');
     }
@@ -122,6 +125,7 @@ router.post('/seo', function (req, res) {
     let context = {
         id: params.id * 1,
         url: params.url,
+        domain: params.domain,
         direct_proxy: true,
         proxy_host: params.proxy_host,
         proxy_port: params.proxy_port,
