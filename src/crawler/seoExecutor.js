@@ -125,7 +125,7 @@ async function start(context) {
         await utils.sleep(5000);
         NestiaWeb.logger.info('Job done');
     } else {
-        NestiaWeb.logger.info('No search result found, done.');
+        NestiaWeb.logger.info('No search result found, done.', context);
     }
 }
 
