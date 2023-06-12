@@ -34,6 +34,7 @@ async function start(context) {
         let randomAqs = `chrome..${randomStr('69i52j33i160'.length)}.${randomStr('279j0j7'.length)}`;
         let search = encodeURIComponent((context.tags || '').replace(/,/g, ' '));
         let searchUrl = `https://www.google.com/search?q=${search}&oq=${search}&aqs=${randomAqs}&sourceid=chrome&ie=UTF-8`
+        NestiaWeb.logger.info('Try go directly to:' + searchUrl);
         try {
             await page.evaluate((url) => {
                 location.href = url;
