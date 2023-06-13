@@ -128,11 +128,17 @@ async function start(context) {
                     url: aLink.innerText
                 };
             }
+            return {
+                type: 'unknown',
+                html: document.querySelector('div#that_is_it').innerHTML
+            }
         });
         if (url.type === 'link') {
             await page.click('div#that_is_it a');
-        } else {
+        } else if (url.type === 'text') {
             await page.click('div#that_is_it cite');
+        }else{
+            NestiaWeb.logger.error('Unknown result:' + JSON.stringify(url, null, ''));
         }
         NestiaWeb.logger.info('Clicked result', JSON.stringify(url, null, ''));
         await utils.sleep(10000);
