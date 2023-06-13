@@ -125,7 +125,7 @@ async function start(context) {
         await utils.sleep(5000);
         NestiaWeb.logger.info('Job done');
     } else {
-        let search_results=[];
+        let search_results = [];
         try {
             search_results = await page.evaluate(() => {
                 let results = [];
@@ -136,6 +136,9 @@ async function start(context) {
                 for (let i = 0; i < search_results.length; i++) {
                     let result = search_results[i];
                     let title = result.querySelector('h3');
+                    if (!title) {
+                        title = result;
+                    }
                     let url = result.querySelector('cite');
                     if (!url) {
                         url = result.querySelector('a');
