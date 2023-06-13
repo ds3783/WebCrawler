@@ -185,7 +185,7 @@ async function start(context) {
                         url = '-----';
                     }
                     if (url && /^\/url\?.*url=.*$/.test(url)) {
-                        let urlObj = new URL(url);
+                        let urlObj = new URL(location.origin + url);
                         url = urlObj.searchParams.get('url');
                     }
                     results.push({
