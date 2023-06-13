@@ -145,6 +145,7 @@ async function start(context) {
                     location.href = window.jQuery('.entry-title a').attr('href');
                 }
             });
+            NestiaWeb.logger.info('Clicked detail on tag page');
         }
         await utils.sleep(10000);
         await page.evaluate(() => {
