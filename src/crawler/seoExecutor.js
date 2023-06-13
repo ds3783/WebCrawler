@@ -140,21 +140,24 @@ async function start(context) {
                         title = result;
                     }
                     let url = result.querySelector('cite');
+                    //transform url to string
                     if (!url) {
                         url = result.querySelector('a');
                         if (url) {
                             url = url.getAttribute('href').replace(/\/url\?q=/, '');
+                        } else {
+                            url = '-----';
                         }
                     } else {
                         url = url.innerText;
                     }
+                    //give a default value
                     if (!url) {
                         url = '-----';
                     }
-                    let marked = false;
-                    if (/^\/url\?.*url=.*$/.test(url)) {
-                        let url = new URL(url);
-                        url = url.searchParams.get('url');
+                    if (url && /^\/url\?.*url=.*$/.test(url)) {
+                        let urlObj = new URL(url);
+                        url = urlObj.searchParams.get('url');
                     }
                     results.push({
                         title: title.innerText,
