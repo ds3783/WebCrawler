@@ -113,9 +113,17 @@ async function start(context) {
     if (search_results.length > 0) {
         //click that_is_it
         let url = await page.evaluate(() => {
-            return document.querySelector('div#that_is_it a').getAttribute('href');
+            let aLink = document.querySelector('div#that_is_it a');
+
+            if (aLink) {
+                return aLink.getAttribute('href');
+            }
+            aLink = document.querySelector('div#that_is_it cite');
+            if (aLink) {
+                return aLink.innerText;
+            }
         });
-        await page.click('div#that_is_it a');
+        await page.click('div#that_is_it');
         NestiaWeb.logger.info('Clicked result', url);
         await utils.sleep(20000);
         await page.evaluate(() => {
