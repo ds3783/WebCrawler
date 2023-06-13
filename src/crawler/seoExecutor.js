@@ -125,7 +125,41 @@ async function start(context) {
         await utils.sleep(5000);
         NestiaWeb.logger.info('Job done');
     } else {
-        NestiaWeb.logger.info('No search result found, done.', JSON.stringify(context, null, ''));
+        let search_results=[];
+        try {
+            search_results = await page.evaluate(() => {
+                let results = [];
+                let search_results = document.querySelectorAll('div#main div.g');
+                if (search_results.length === 0) {
+                    search_results = document.querySelectorAll('div#main div.Gx5Zad');
+                }
+                for (let i = 0; i < search_results.length; i++) {
+                    let result = search_results[i];
+                    let title = result.querySelector('h3');
+                    let url = result.querySelector('cite');
+                    if (!url) {
+                        url = result.querySelector('a');
+                        url = url.getAttribute('href').replace(/\/url\?q=/, '');
+                    } else {
+                        url = url.innerText;
+                    }
+                    let marked = false;
+                    if (/^\/url\?.*url=.*$/.test(url)) {
+                        let url = new URL(url);
+                        url = url.searchParams.get('url');
+                    }
+                    results.push({
+                        title: title.innerText,
+                        url: url
+                    });
+                }
+                return results;
+            });
+        } catch (e) {
+            NestiaWeb.logger.error('Failed to extract search results:' + e.message);
+        }
+        NestiaWeb.logger.info('No search result found, done.', JSON.stringify(context, null, ''), 'current results:', JSON.stringify(search_results, null, ''));
+
     }
 }
 
