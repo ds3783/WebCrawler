@@ -169,7 +169,14 @@ async function start(context) {
         } catch (e) {
             NestiaWeb.logger.error('Failed to extract search results:' + e.message);
         }
-        NestiaWeb.logger.info('No search result found, done.', JSON.stringify(context, null, ''), 'current results:', JSON.stringify(search_results, null, ''));
+        if (search_results.length > 0) {
+            NestiaWeb.logger.info('No search result found, done.', JSON.stringify(context, null, ''), 'current results:', JSON.stringify(search_results, null, ''));
+        } else {
+            let pageContent = await page.evaluate(() => {
+                return document.querySelector('div#main').innerText;
+            });
+            NestiaWeb.logger.info('No search result found, done.', JSON.stringify(context, null, ''), 'current page content:', pageContent);
+        }
 
     }
 }
