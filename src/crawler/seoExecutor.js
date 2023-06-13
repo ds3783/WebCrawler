@@ -116,16 +116,37 @@ async function start(context) {
             let aLink = document.querySelector('div#that_is_it a');
 
             if (aLink) {
-                return aLink.getAttribute('href');
+                return {
+                    type: 'link',
+                    url: aLink.getAttribute('href')
+                };
             }
             aLink = document.querySelector('div#that_is_it cite');
             if (aLink) {
-                return aLink.innerText;
+                return {
+                    type: 'text',
+                    url: aLink.innerText
+                };
             }
         });
-        await page.click('div#that_is_it');
-        NestiaWeb.logger.info('Clicked result', url);
-        await utils.sleep(20000);
+        if (url.type === 'link') {
+            await page.click('div#that_is_it a');
+        } else {
+            await page.click('div#that_is_it cite');
+        }
+        NestiaWeb.logger.info('Clicked result', JSON.stringify(url, null, ''));
+        await utils.sleep(10000);
+        let isTagPage = await page.evaluate(() => {
+            return /\/tag\//.test(location.href);
+        });
+        if (isTagPage) {
+            await page.evaluate(() => {
+                if (window.jQuery && window.jQuery('.entry-title a').attr('href')) {
+                    location.href = window.jQuery('.entry-title a').attr('href');
+                }
+            });
+        }
+        await utils.sleep(10000);
         await page.evaluate(() => {
             location.href = '/';
         });
