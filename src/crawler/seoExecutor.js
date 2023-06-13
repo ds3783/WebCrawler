@@ -142,9 +142,14 @@ async function start(context) {
                     let url = result.querySelector('cite');
                     if (!url) {
                         url = result.querySelector('a');
-                        url = url.getAttribute('href').replace(/\/url\?q=/, '');
+                        if (url) {
+                            url = url.getAttribute('href').replace(/\/url\?q=/, '');
+                        }
                     } else {
                         url = url.innerText;
+                    }
+                    if (!url) {
+                        url = '-----';
                     }
                     let marked = false;
                     if (/^\/url\?.*url=.*$/.test(url)) {
