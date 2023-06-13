@@ -202,7 +202,7 @@ async function start(context) {
             NestiaWeb.logger.info('No search result found, done.', JSON.stringify(context, null, ''), 'current results:', JSON.stringify(search_results, null, ''));
         } else {
             let pageContent = await page.evaluate(() => {
-                return document.querySelector('div#main').innerText;
+                return document.querySelector('div#main').innerHTML;
             });
             NestiaWeb.logger.info('No search result found, done.', JSON.stringify(context, null, ''), 'current page content:', pageContent);
         }
