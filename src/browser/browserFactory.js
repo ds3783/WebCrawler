@@ -148,7 +148,7 @@ const generateBrowserParameter = async function (job) {
         initialTime: Date.now()
     };
 
-    NestiaWeb.logger.info('Browser Context:', ctx);
+    NestiaWeb.logger.info('Browser Context:', JSON.stringify(ctx));
     return {
         key,
         id,
