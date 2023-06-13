@@ -119,7 +119,8 @@ const generateBrowserParameter = async function (job) {
     let id = uuidv1();
     let proxyProvider;
     if (job.proxy_host && job.proxy_port) {
-        let isLuminati = await Luminati.isLuminatiProxy(job.proxy_host, job.proxy_port);
+        // let isLuminati = await Luminati.isLuminatiProxy(job.proxy_host, job.proxy_port);
+        let isLuminati = false;
         if (isLuminati) {
             proxyProvider = 'LUMINATI';
         } else if (job.proxy_port === 8888) {
