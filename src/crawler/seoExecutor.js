@@ -91,7 +91,11 @@ async function start(context) {
             let url = result.querySelector('cite');
             if (!url) {
                 url = result.querySelector('a');
-                url = url.getAttribute('href').replace(/\/url\?q=/, '');
+                if (url) {
+                    url = url.getAttribute('href').replace(/\/url\?q=/, '');
+                } else {
+                    url = '';
+                }
             } else {
                 url = url.innerText;
             }
@@ -137,7 +141,7 @@ async function start(context) {
             await page.click('div#that_is_it a');
         } else if (url.type === 'text') {
             await page.click('div#that_is_it cite');
-        }else{
+        } else {
             NestiaWeb.logger.error('Unknown result:' + JSON.stringify(url, null, ''));
         }
         NestiaWeb.logger.info('Clicked result', JSON.stringify(url, null, ''));
