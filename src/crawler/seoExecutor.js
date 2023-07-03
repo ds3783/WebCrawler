@@ -132,9 +132,17 @@ async function start(context) {
                     url: aLink.innerText
                 };
             }
-            return {
-                type: 'unknown',
-                html: document.querySelector('div#that_is_it').innerHTML
+            var target = document.querySelector('#that_is_it');
+            if (target) {
+                return {
+                    type: 'unknown',
+                    html: target.innerHTML
+                }
+            } else {
+                return {
+                    type: 'unknown',
+                    html: 'NOT FOUND!!!'
+                }
             }
         });
         if (url.type === 'link') {
