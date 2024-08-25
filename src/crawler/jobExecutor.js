@@ -126,7 +126,7 @@ async function doJob(job, ctx) {
     // await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36');
     // await page.setViewport({width: 1440, height: 900});
     // 设置页面拦截器
-    await page.setRequestInterception(true);
+    await page.setRequestInterception(false);
 
     let lastNetworkRequest = +new Date(), networking = {};
     let registerEvents = function () {
@@ -204,7 +204,7 @@ async function doJob(job, ctx) {
             // }
             // NestiaWeb.logger.info(job.id + ':page response+' + request.url());
         });
-        page.on('request', async (request) => {
+        /*page.on('request', async (request) => {
             let reqUrl = request.url(), lastIdx;
             lastNetworkRequest = +new Date();
             let pass = jobDesc.requestFilter ? jobDesc.requestFilter(request) : true;
@@ -216,14 +216,14 @@ async function doJob(job, ctx) {
                     networking[reqUrl] = 1;
                 }
 
-                /*
+                /!*
                 * {
                     headers: {
                         "X-Referer": page.__context.url,
                         "X-Proxy-Server": page.__context.proxy_host,
                         "X-Proxy-Port": page.__context.proxy_port,
                     }
-                }*/
+                }*!/
                 let isHttps = /^https:\/\//.test(reqUrl), isOriginHttps = /^https:\/\//.test(page.__context.url);
                 if (isOriginHttps) {
                     isHttps = true;
@@ -265,7 +265,7 @@ async function doJob(job, ctx) {
             promise.catch(function (e) {
                 NestiaWeb.logger.error('Error control request[' + reqUrl + '] on page[' + page.__context.url + '],message: ' + e.message, e);
             });
-            /*page.evaluate((viewport) => {
+            /!*page.evaluate((viewport) => {
                 window.__defineGetter__('innerWidth', function () {
                     return viewport.width;
                 });
@@ -295,9 +295,9 @@ async function doJob(job, ctx) {
                 });
             }, page.__context.viewport).catch((e) => {
                 NestiaWeb.logger.error('Error fake resolution:' + e.message, e);
-            });*/
+            });*!/
             // NestiaWeb.logger.debug(job.id + ':page request+' + reqUrl);
-        });
+        });*/
     };
 
     registerEvents();

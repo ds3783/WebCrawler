@@ -77,7 +77,7 @@ async function start(context) {
         //wait for the search results
         await page.waitForNavigation()
     }
-    await page.waitForSelector('div#main');
+    await page.waitForSelector('div#main-wrap');
     //fetch the search results
     let search_results = await page.evaluate((domain) => {
         let results = [];

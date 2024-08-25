@@ -5,6 +5,7 @@ const alias = {
 
   'TOUTIAO_NEWS_DETAIL': 'toutiao.newsDetail',
   'JD_ITEM_PRICE': 'jd.itemPrice',
+  'DEBANK_WALLET': 'debank.walletDetail',
   'COMMON_HTML': 'common.html',
   'COMMON_JSON': 'common.json',
 };
