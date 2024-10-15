@@ -6,6 +6,7 @@ const alias = {
   'TOUTIAO_NEWS_DETAIL': 'toutiao.newsDetail',
   'JD_ITEM_PRICE': 'jd.itemPrice',
   'DEBANK_WALLET': 'debank.walletDetail',
+  '3MIR_HOME': '3mir.homepage',
   'COMMON_HTML': 'common.html',
   'COMMON_JSON': 'common.json',
 };
