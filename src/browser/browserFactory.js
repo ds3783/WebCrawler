@@ -375,7 +375,7 @@ module.exports = {
                         args: parameters.cmdArguments,
                         userDataDir: dataDir,
                         handleSIGINT: false,
-                        headless: parameters.headless,
+                        headless: parameters.headless ? 'true' : false,
                         executablePath: executablePath(),
                     }).then(b => {
                         b.__key = parameters.key;
