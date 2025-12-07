@@ -43,7 +43,11 @@ const getBrowserKey = function (job) {
     if (!headless) {
         headlessStr = 'no-headless';
     }
-    return `${prefix}_${proxy}_${headlessStr}`;
+    let extra = '';
+    if (job.forceCleanBrowser) {
+        extra = uuidv1();
+    }
+    return `${prefix}_${proxy}_${headlessStr}_${extra}`;
 };
 
 /*
