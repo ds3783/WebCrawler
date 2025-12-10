@@ -47,7 +47,7 @@ router.post('/start', function (req, res) {
         sync: params.sync > 0,
         callback: params.callback,
         params: (params.params && JSON.parse(params.params)) || {},
-        closeBrowserAfterJob: params.closeBrowserAfterJob || false,
+        closeBrowserAfterJob: params.closeBrowserAfterJob * 1 > 0,
     };
     if (!crawler) {
         res.send({
