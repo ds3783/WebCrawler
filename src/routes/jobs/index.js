@@ -31,7 +31,10 @@ router.post('/start', function (req, res) {
     }
     if (errors.length > 0) {
         res.status(400);
-        res.send({result: false, message: errors.join('\n')});
+        res.send({
+            result: false,
+            message: errors.join('\n')
+        });
         return;
     }
 
@@ -44,9 +47,13 @@ router.post('/start', function (req, res) {
         sync: params.sync > 0,
         callback: params.callback,
         params: (params.params && JSON.parse(params.params)) || {},
+        closeBrowserAfterJob: params.closeBrowserAfterJob || false,
     };
     if (!crawler) {
-        res.send({result: false, message: 'browser not initialized'});
+        res.send({
+            result: false,
+            message: 'browser not initialized'
+        });
     } else {
         try {
             NestiaWeb.logger.info('Starting job:' + JSON.stringify(context, null, ''));
@@ -63,7 +70,10 @@ router.post('/start', function (req, res) {
                     crawler.unregisterCallback(context.id);
                     NestiaWeb.logger.error('Error starting job:' + JSON.stringify(context, null, ''));
                     NestiaWeb.logger.error('Error:' + e.message, e);
-                    res.send({result: false, message: e.message});
+                    res.send({
+                        result: false,
+                        message: e.message
+                    });
                 });
             } else {
                 crawler.registerCallback(context.id, function (result) {
@@ -71,7 +81,11 @@ router.post('/start', function (req, res) {
                     if (context.callback) {
                         NestiaWeb.logger.info('callback:' + context.callback);
                         NestiaWeb.ajax.request({
-                            url: context.callback, method: 'POST', reqContentType: 'json', timeout: 30000, data: result
+                            url: context.callback,
+                            method: 'POST',
+                            reqContentType: 'json',
+                            timeout: 30000,
+                            data: result
                         }).catch(e => {
                             NestiaWeb.logger.error('callback failed:' + e.message, e);
                         });
@@ -80,7 +94,10 @@ router.post('/start', function (req, res) {
                 crawler.start(context).catch(e => {
                     NestiaWeb.logger.error('Error starting job:' + JSON.stringify(context, null, ''));
                     NestiaWeb.logger.error('Error:' + e.message, e);
-                    res.send({result: false, message: e.message});
+                    res.send({
+                        result: false,
+                        message: e.message
+                    });
                 });
                 res.send({result: true});
             }
@@ -88,7 +105,10 @@ router.post('/start', function (req, res) {
             crawler.unregisterCallback(context.id);
             NestiaWeb.logger.error('Error starting job:' + JSON.stringify(context, null, ''));
             NestiaWeb.logger.error('Error:' + e.message, e);
-            res.send({result: false, message: e.message});
+            res.send({
+                result: false,
+                message: e.message
+            });
         }
     }
 });
@@ -118,7 +138,10 @@ router.post('/seo', function (req, res) {
     }
     if (errors.length > 0) {
         res.status(400);
-        res.send({result: false, message: errors.join('\n')});
+        res.send({
+            result: false,
+            message: errors.join('\n')
+        });
         return;
     }
 
@@ -133,15 +156,18 @@ router.post('/seo', function (req, res) {
         tags: params.tags,
     };
     if (!crawler) {
-        res.send({result: false, message: 'browser not initialized'});
+        res.send({
+            result: false,
+            message: 'browser not initialized'
+        });
     } else {
         try {
             NestiaWeb.logger.info('Starting seo:' + JSON.stringify(context, null, ''));
 
             crawler.startSeo(context)
-                .then(() => {
-                    NestiaWeb.logger.info('Seo job complete:' + JSON.stringify(context, null, ''));
-                }).catch(e => {
+            .then(() => {
+                NestiaWeb.logger.info('Seo job complete:' + JSON.stringify(context, null, ''));
+            }).catch(e => {
                 crawler.unregisterCallback(context.id);
                 NestiaWeb.logger.error('Error starting job:' + JSON.stringify(context, null, ''));
                 NestiaWeb.logger.error('Error:' + e.message, e);
@@ -151,7 +177,10 @@ router.post('/seo', function (req, res) {
             crawler.unregisterCallback(context.id);
             NestiaWeb.logger.error('Error starting job:' + JSON.stringify(context, null, ''));
             NestiaWeb.logger.error('Error:' + e.message, e);
-            res.send({result: false, message: e.message});
+            res.send({
+                result: false,
+                message: e.message
+            });
         }
     }
 });
@@ -172,7 +201,10 @@ router.post('/static', function (req, res) {
         params: params
     };
     if (!crawler) {
-        res.send({result: false, message: 'browser not initialized'});
+        res.send({
+            result: false,
+            message: 'browser not initialized'
+        });
     } else {
         try {
             NestiaWeb.logger.info('Starting static job:' + JSON.stringify(context, null, ''));
@@ -186,12 +218,18 @@ router.post('/static', function (req, res) {
             }).catch(function (e) {
                 NestiaWeb.logger.error('Error starting static job 1:' + JSON.stringify(context, null, ''));
                 NestiaWeb.logger.error('Error:' + e.message, e);
-                res.send({result: false, message: e.message});
+                res.send({
+                    result: false,
+                    message: e.message
+                });
             });
         } catch (e) {
             NestiaWeb.logger.error('Error starting static job 2:' + JSON.stringify(context, null, ''));
             NestiaWeb.logger.error('Error:' + e.message, e);
-            res.send({result: false, message: e.message});
+            res.send({
+                result: false,
+                message: e.message
+            });
         }
     }
 });

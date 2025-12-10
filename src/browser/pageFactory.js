@@ -270,13 +270,29 @@ module.exports = {
     });
     return page;
   },
-  releasePage: async function (job, page) {
+  releasePage: async function (job, page, closeBrowser) {
     "use strict";
-    page.removeAllListeners && page.removeAllListeners('framenavigated');
+    let pageContext = page.__context;
+    try {
+      page.__context.released = true;
+      page.removeAllListeners && page.removeAllListeners();
+
+    } catch (e) {
+      NestiaWeb.logger.error('Error remove page event[' + page.__context.key + ']:' + e.message, e);
+    }
     try {
       await page.close();
     } catch (e) {
       NestiaWeb.logger.warn('Error closing page:' + e.message, e);
+    }
+    try {
+      if (closeBrowser) {
+        const BrowserFactory = Browser.getBrowserFactory();
+        await BrowserFactory.markUnavailable(pageContext.key, pageContext.id, true);
+        NestiaWeb.logger.warn(' closing browser:');
+      }
+    } catch (e) {
+      NestiaWeb.logger.warn('Error closing browser:' + e.message, e);
     }
   },
   releaseStaticPage: async function (page) {

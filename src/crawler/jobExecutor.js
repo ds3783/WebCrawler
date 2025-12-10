@@ -88,7 +88,7 @@ async function cleanJob(job, page) {
     if (job.useStaticBrowser) {
         await PageFactory.releaseStaticPage(page);
     } else {
-        await PageFactory.releasePage(job, page);
+        await PageFactory.releasePage(job, page, job.closeBrowserAfterJob || false);
     }
 
     let idx = jobs.indexOf(job);
@@ -128,7 +128,8 @@ async function doJob(job, ctx) {
     // 设置页面拦截器
     await page.setRequestInterception(false);
 
-    let lastNetworkRequest = +new Date(), networking = {};
+    let lastNetworkRequest = +new Date(),
+        networking = {};
     let registerEvents = function () {
 
         page.on('load', async () => {
@@ -163,7 +164,8 @@ async function doJob(job, ctx) {
                         switch (result) {
                             case 'RELOAD':
                                 NestiaWeb.logger.info(job.id + ':page failed, RELOAD ,clear cookie!');
-                                let cookies = [], headers = response.headers;
+                                let cookies = [],
+                                    headers = response.headers;
                                 for (let i in headers) {
                                     if (i === 'set-cookie' && headers.hasOwnProperty(i)) {
                                         cookies = cookies.concat(utils.parseCookies(headers[i]));
@@ -303,7 +305,8 @@ async function doJob(job, ctx) {
     registerEvents();
 
 
-    let busy = false, interval = null;
+    let busy = false,
+        interval = null;
     //处理超时
     let timeout = setTimeout(function () {
         job.status = 'timeout-end';
@@ -412,7 +415,10 @@ async function doJob(job, ctx) {
                             await callback(job, page, false, 'Unknown error,browser didn\'t get result,maybe type is wrong?', null, url);
 
                             //WRITE LOG AND SAVE SCREEN CAPTURE
-                            await page.setViewport({width: 1440, height: 5000});
+                            await page.setViewport({
+                                width: 1440,
+                                height: 5000
+                            });
                             let desc = StatusShot.getNewDesc();
                             let screenShotName = desc.id + '.jpg';
                             await page.screenshot({
