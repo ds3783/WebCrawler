@@ -59,7 +59,7 @@ jobs:
     name: Build and Deploy
     needs: check-server
     runs-on: ubuntu-latest
-    environment: Production-VPS
+    environment: Pilot-VPS
     
     steps:
       - name: Checkout code
@@ -123,7 +123,12 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p "$VPS_SSH_PORT" -H "$VPS_HOST" >> ~/.ssh/known_hosts
+          SSH_PORT="${VPS_SSH_PORT:-22}"
+          if [ -z "$SSH_PORT" ] || [ "$SSH_PORT" = "" ]; then
+            echo "❌ Error: VPS_SSH_PORT is empty or not set"
+            exit 1
+          fi
+          ssh-keyscan -p "$SSH_PORT" -H "$VPS_HOST" >> ~/.ssh/known_hosts
 
       - name: Upload and Deploy to VPS
         env:
@@ -135,21 +140,28 @@ jobs:
         run: |
           set -euo pipefail
           
+          # Validate SSH port
+          SSH_PORT="${VPS_SSH_PORT:-22}"
+          if [ -z "$SSH_PORT" ] || [ "$SSH_PORT" = "" ]; then
+            echo "❌ Error: VPS_SSH_PORT is empty or not set"
+            exit 1
+          fi
+          
           # Deploy to production
           echo "🚀 Deploying to production environment"
           DEPLOY_PATH="$VPS_PATH"
           
           # Create deployment directory
           echo "📁 Creating deployment directory on VPS: $DEPLOY_PATH"
-          ssh -p $VPS_SSH_PORT $VPS_USER@$VPS_HOST "mkdir -p $DEPLOY_PATH"
+          ssh -p $SSH_PORT $VPS_USER@$VPS_HOST "mkdir -p $DEPLOY_PATH"
           
           # Upload deployment package directly to VPS
           echo "📤 Uploading deployment package to VPS..."
-          scp -P $VPS_SSH_PORT webcrawler-deploy.zip $VPS_USER@$VPS_HOST:$DEPLOY_PATH/
+          scp -P $SSH_PORT webcrawler-deploy.zip $VPS_USER@$VPS_HOST:$DEPLOY_PATH/
           
           # Deploy on VPS
           echo "🔧 Starting deployment process on VPS..."
-          ssh -p $VPS_SSH_PORT $VPS_USER@$VPS_HOST "export DEPLOY_PATH='$DEPLOY_PATH'; bash -s" << 'EOF'
+          ssh -p $SSH_PORT $VPS_USER@$VPS_HOST "export DEPLOY_PATH='$DEPLOY_PATH'; bash -s" << 'EOF'
             set -euo pipefail
             
             echo "📂 Changing to deployment directory: $DEPLOY_PATH"
