@@ -7,6 +7,7 @@ const alias = {
   'JD_ITEM_PRICE': 'jd.itemPrice',
   'DEBANK_WALLET': 'debank.walletDetail',
   '3MIR_HOME': '3mir.homepage',
+  'MACROMICRO_CHART': 'macromicro.chartData',
   'COMMON_HTML': 'common.html',
   'COMMON_JSON': 'common.json',
 };
