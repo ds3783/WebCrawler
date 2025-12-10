@@ -1,0 +1,226 @@
+name: Build and Deploy to VPS
+
+on:
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '22'
+
+permissions:
+  contents: read
+
+jobs:
+  check-server:
+    name: Check Server Availability
+    runs-on: ubuntu-latest
+    environment: Pilot-VPS
+    
+    steps:
+      - name: Setup SSH key
+        env:
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p "$VPS_SSH_PORT" -H "$VPS_HOST" >> ~/.ssh/known_hosts
+
+      - name: Check VPS SSH connectivity
+        env:
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          echo "🔍 Checking VPS server SSH connectivity..."
+          echo "📍 Target: $VPS_USER@$VPS_HOST:$VPS_SSH_PORT"
+          echo "🔐 Testing SSH connection..."
+          echo ""
+          
+          # Test SSH connection with a simple command
+          if ssh -p $VPS_SSH_PORT -o ConnectTimeout=10 -o StrictHostKeyChecking=no $VPS_USER@$VPS_HOST "echo '✅ SSH connection successful'; hostname; uptime"; then
+            echo ""
+            echo "✅ VPS server is online and SSH is accessible"
+          else
+            SSH_EXIT_CODE=$?
+            echo ""
+            echo "❌ Error: Cannot establish SSH connection to VPS (exit code: $SSH_EXIT_CODE)"
+            echo "⚠️ Please check:"
+            echo "   - VPS_HOST variable, VPS_USER, VPS_SSH_PORT secrets are correct"
+            echo "   - VPS_SSH_KEY is valid"
+            echo "   - SSH service is running on the server"
+            echo "   - Firewall allows SSH connections"
+            exit 1
+          fi
+
+  build-and-deploy:
+    name: Build and Deploy
+    needs: check-server
+    runs-on: ubuntu-latest
+    environment: Production-VPS
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      # Create deployment package
+      - name: Create deployment package
+        run: |
+          set -euo pipefail
+          mkdir -p deploy-package
+          
+          # Copy project files to deploy-package (excluding node_modules, logs, cache, data, chromeData)
+          echo "📦 Copying project files..."
+          cp -r src deploy-package/
+          cp -r pm2 deploy-package/
+          cp -r doc deploy-package/ 2>/dev/null || true
+          
+          # Copy root files
+          if [ -f package.json ]; then
+            cp package.json deploy-package/
+          fi
+          if [ -f package-lock.json ]; then
+            cp package-lock.json deploy-package/
+          fi
+          if [ -f README.md ]; then
+            cp README.md deploy-package/
+          fi
+          if [ -f healthcheck.html ]; then
+            cp healthcheck.html deploy-package/
+          fi
+          if [ -f audit.json ]; then
+            cp audit.json deploy-package/
+          fi
+          
+          # Remove excluded directories if they were copied
+          rm -rf deploy-package/node_modules
+          rm -rf deploy-package/logs
+          rm -rf deploy-package/data
+          rm -rf deploy-package/chromeData
+          rm -rf deploy-package/.git
+          find deploy-package -name "*.log" -type f -delete 2>/dev/null || true
+
+      - name: Create deployment archive
+        run: |
+          set -euo pipefail
+          cd deploy-package
+          zip -r ../webcrawler-deploy.zip .
+          cd ..
+
+      - name: Setup SSH key
+        env:
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p "$VPS_SSH_PORT" -H "$VPS_HOST" >> ~/.ssh/known_hosts
+
+      - name: Upload and Deploy to VPS
+        env:
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PATH: ${{ vars.VPS_PATH }}
+          VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          
+          # Deploy to production
+          echo "🚀 Deploying to production environment"
+          DEPLOY_PATH="$VPS_PATH"
+          
+          # Create deployment directory
+          echo "📁 Creating deployment directory on VPS: $DEPLOY_PATH"
+          ssh -p $VPS_SSH_PORT $VPS_USER@$VPS_HOST "mkdir -p $DEPLOY_PATH"
+          
+          # Upload deployment package directly to VPS
+          echo "📤 Uploading deployment package to VPS..."
+          scp -P $VPS_SSH_PORT webcrawler-deploy.zip $VPS_USER@$VPS_HOST:$DEPLOY_PATH/
+          
+          # Deploy on VPS
+          echo "🔧 Starting deployment process on VPS..."
+          ssh -p $VPS_SSH_PORT $VPS_USER@$VPS_HOST "export DEPLOY_PATH='$DEPLOY_PATH'; bash -s" << 'EOF'
+            set -euo pipefail
+            
+            echo "📂 Changing to deployment directory: $DEPLOY_PATH"
+            cd $DEPLOY_PATH
+          
+            # Backup current deployment
+            echo "💾 Backing up current deployment..."
+            if [ -d "current" ]; then
+              echo "🗂️ Removing old backup..."
+              rm -rf backup
+              echo "📦 Moving current to backup..."
+              mv current backup
+            else
+              echo "ℹ️ No current deployment found to backup"
+            fi
+          
+            # Extract new deployment
+            echo "📦 Creating new deployment directory..."
+            mkdir -p current
+            echo "📂 Changing to current directory..."
+            cd current
+            echo "📤 Extracting deployment package..."
+            unzip -q ../webcrawler-deploy.zip
+            
+            # Install production dependencies
+            echo "📦 Installing production dependencies..."
+            npm ci --only=production
+          
+            # Update PM2 if needed
+            echo "🔄 Updating PM2 if needed..."
+            pm2 update || true
+          
+            # Stop old process (allow failures for non-existent processes)
+            echo "⏹️ Stopping old process..."
+            pm2 delete WebCrawler || true
+            
+            # Start new process
+            echo "▶️ Starting new process..."
+            pm2 start pm2/process-prod.json
+            pm2 save || true
+          
+            # Clean up
+            echo "🧹 Cleaning up..."
+            echo "📂 Changing to deployment directory: $DEPLOY_PATH"
+            cd $DEPLOY_PATH
+            echo "🗑️ Removing deployment archive..."
+            rm -f webcrawler-deploy.zip
+          
+            echo "✅ Deployment completed successfully!"
+          EOF
+
+  notify:
+    name: Notify Deployment Status
+    needs: [ check-server, build-and-deploy ]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Notify Success
+        if: needs.build-and-deploy.result == 'success'
+        run: |
+          set -euo pipefail
+          echo "✅ Deployment to ${{ github.ref_name }} successful!"
+          # Add webhook notification here if needed
+
+      - name: Notify Failure
+        if: needs.build-and-deploy.result == 'failure'
+        run: |
+          set -euo pipefail
+          echo "❌ Deployment to ${{ github.ref_name }} failed!"
+          # Add webhook notification here if needed
+
