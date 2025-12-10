@@ -15,6 +15,7 @@
                 "MANIFEST": "prod",
                 "INSTANCE_NAME": "prod",
                 "DEV_MODE": "production",
+                "CHROME_DEVEL_SANDBOX": "/usr/sbin/chrome_sandbox",
                 "PORT": 3200
             }
         }
