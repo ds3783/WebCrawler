@@ -8,6 +8,7 @@ const alias = {
   'DEBANK_WALLET': 'debank.walletDetail',
   '3MIR_HOME': '3mir.homepage',
   'MACROMICRO_CHART': 'macromicro.chartData',
+  'MACROMICRO_JSON': 'macromicro.jsonInPage',
   'COMMON_HTML': 'common.html',
   'COMMON_JSON': 'common.json',
 };
