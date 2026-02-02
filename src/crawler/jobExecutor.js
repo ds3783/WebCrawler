@@ -313,6 +313,53 @@ async function doJob(job, ctx) {
         busy = false;
         (async function () {
             NestiaWeb.logger.info('Job timeout:' + JSON.stringify(job, null, ''));
+            let validResult = await jobDesc.validateSuccess(page, job);
+            if (validResult) {
+                job.status = 'finishing';
+                let result = '';
+                if (busy) {
+                    NestiaWeb.logger.info(job.id + ':page test success');
+                    clearTimeout(timeout);
+                    clearInterval(interval);
+                    interval = null;
+                    //返回抓取结果
+                    result = await jobDesc.getResult(page, job);
+                }
+                if (busy) {
+                    NestiaWeb.logger.info(job.id + ':page get html:');
+                    let url = await page.url();
+                    await callback(job, page, validResult, null, result, url);
+
+                }
+                job.status = 'finished';
+                if (busy) {
+                    await cleanJob(job, page);
+                }
+                return;
+            }else{
+                await callback(job, page, false, 'JobTimeout', null, url);
+
+                //WRITE LOG AND SAVE SCREEN CAPTURE
+                await page.setViewport({
+                    width: 1440,
+                    height: 5000
+                });
+                let desc = StatusShot.getNewDesc();
+                let screenShotName = desc.id + '.jpg';
+                await page.screenshot({
+                    path: path.join(desc.path, screenShotName),
+                    type: 'jpeg',
+                    quality: 65
+                });
+                let cookies = await page.cookies();
+                let html = await page.evaluate(() => {
+                    return document.documentElement.outerHTML;
+                });
+                StatusShot.save(desc, job, url, cookies, html, screenShotName);
+                NestiaWeb.logger.info(job.id + ':  screenshot saved!', desc);
+            }
+
+
             let url = await page.url();
             await callback(job, page, false, 'timeout', null, url);
             clearInterval(interval);

@@ -19,6 +19,7 @@
     "nestia-web": "^1.1.9",
     "node-cron": "^3.0.2",
     "node-gyp": "^9.3.1",
+    "pm2": "^6.0.14",
     "puppeteer": "^19.5.2",
     "puppeteer-extra": "^3.3.4",
     "puppeteer-extra-plugin-stealth": "^2.11.1",
