@@ -11,7 +11,7 @@ module.exports = Object.assign({}, base, {
         let timeout = Date.now() + 200000;
         while (Date.now() < timeout) {
             let valid = await page.evaluate(() => {
-                return 'complete' === document.readyState;
+                return 'complete' === document.readyState || (document.body && document.body.innerText);
             });
             if (valid) {
                 return true;
