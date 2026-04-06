@@ -9,7 +9,7 @@ module.exports = {
         cronJobDataPath: 'data/crondata',
         serverDesc: 'Nestia Web Server V1.0',
         refreshTokenTime: 3500, // unit s
-        proxyPort: 3010,
+        proxyPort: 3201,
         proxyLog: true,
         
         enableStaticJob: true,
