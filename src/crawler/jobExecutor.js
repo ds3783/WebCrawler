@@ -314,6 +314,7 @@ async function doJob(job, ctx) {
         busy = false;
         (async function () {
             NestiaWeb.logger.info('Job timeout:' + JSON.stringify(job, null, ''));
+            let url = await page.url();
             let validResult = await jobDesc.validateSuccess(page, job);
             if (validResult) {
                 job.status = 'finishing';
@@ -328,7 +329,7 @@ async function doJob(job, ctx) {
                 }
                 if (busy) {
                     NestiaWeb.logger.info(job.id + ':page get html:');
-                    let url = await page.url();
+                    url = await page.url();
                     await callback(job, page, validResult, null, result, url);
 
                 }
@@ -361,7 +362,7 @@ async function doJob(job, ctx) {
             }
 
 
-            let url = await page.url();
+            url = await page.url();
             await callback(job, page, false, 'timeout', null, url);
             clearInterval(interval);
             interval = null;
