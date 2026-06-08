@@ -1,8 +1,8 @@
-const base = require('./base');
-const util = require("../../../misc/util");
-const NestiaWeb = require('nestia-web');
+import base from './base.js';
+import util from '../../../misc/util.js';
+import NestiaWeb from 'nestia-web';
 
-module.exports = Object.assign({}, base, {
+export default Object.assign({}, base, {
     isJobDesc: true,
     getNavigateOptions: function () {
         return {waitUntil: 'domcontentloaded'};

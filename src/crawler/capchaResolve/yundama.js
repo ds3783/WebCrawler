@@ -1,6 +1,6 @@
-const crypto = require('crypto');
-const fs = require('fs');
-const NestiaWeb = require('nestia-web');
+import crypto from 'crypto';
+import fs from 'fs';
+import NestiaWeb from 'nestia-web';
 
 // const baseUrl = 'http://api.dama2.com:7766/app/';
 const requestUrl = 'http://api.yundama.com/api.php';
@@ -33,7 +33,7 @@ let sleep = async function (seconds) {
     })
 };
 
-module.exports = {
+export default {
     resolve: async function (captcha) {
         "use strict";
         let binaryData = fs.readFileSync(captcha);

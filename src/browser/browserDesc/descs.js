@@ -442,4 +442,4 @@ const DESCS = [
     }];                                              
 
 
-module.exports = DESCS;
+export default DESCS;

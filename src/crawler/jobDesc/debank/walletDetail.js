@@ -1,4 +1,4 @@
-const base = require('./base');
+import base from './base.js';
 
 
 const sleep = function (time) {
@@ -9,7 +9,7 @@ const sleep = function (time) {
     }));
 };
 
-module.exports = Object.assign({}, base, {
+export default Object.assign({}, base, {
     isJobDesc: true,
     resultObj: false,
     responseFilter: function (response, content) {

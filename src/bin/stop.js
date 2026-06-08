@@ -4,10 +4,13 @@
 "use strict";
 
 
-const fs = require('fs');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 //pm2 should installed globally so not exists in dependency of package.json
-const pm2 = require('pm2');
+import pm2 from 'pm2';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const server = process.argv[2] || '';
 const rootDir = __dirname + '/../..';
 const configFile = rootDir + '/pm2/process-' + server + '.json';

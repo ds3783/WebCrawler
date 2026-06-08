@@ -1,7 +1,10 @@
-const path = require('path');
-const fs = require('fs');
-const pm2 = require('pm2');
-const cron = require('node-cron');
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import pm2 from 'pm2';
+import cron from 'node-cron';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 
 const RestartTimes = {

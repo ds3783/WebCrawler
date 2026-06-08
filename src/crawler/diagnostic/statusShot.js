@@ -1,8 +1,8 @@
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
 
-const NestiaWeb = require('nestia-web');
-const utils = require('../utils');
+import NestiaWeb from 'nestia-web';
+import utils from '../utils.js';
 
 let id = 0;
 let snapshotPath;
@@ -21,7 +21,7 @@ let getWorkDir = function () {
 };
 
 
-module.exports = {
+export default {
     init: function () {
         "use strict";
         snapshotPath = NestiaWeb.manifest.get('screenshotPath');

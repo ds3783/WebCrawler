@@ -3,9 +3,18 @@
 /**
  * Module dependencies.
  */
-const app = require('../app');
-const http = require('http');
-const NestiaWeb = require('nestia-web');
+import app from '../app.js';
+import http from 'http';
+import NestiaWeb from 'nestia-web';
+
+// 安全网：抓取过程中浏览器 page/context 随时可能被关闭，相关 Promise 若未被捕获，
+// 在 Node 15+ 默认会使整个进程崩溃。作为长期运行的服务，这里记录日志但不退出。
+process.on('unhandledRejection', function (reason) {
+    let logger = NestiaWeb.logger || console;
+    let message = (reason && reason.message) ? reason.message : reason;
+    logger.error('Unhandled promise rejection (ignored to keep service alive): ' + message, reason);
+});
+
 /**
  * Get port from environment and store in Express.
  */

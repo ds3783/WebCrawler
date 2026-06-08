@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "Crawler job executor with browser features.",
   "main": "bin/server.js",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "server": "NODE_PATH=/usr/lib/node_modules node ./src/bin/start.js dev",
+    "server": "MANIFEST=dev DEV_MODE=development NODE_PATH=/usr/lib/node_modules node --expose-gc ./src/bin/www.js",
     "start": "NODE_PATH=/usr/lib/node_modules node ./src/bin/start.js",
     "stop": "NODE_PATH=/usr/lib/node_modules node ./src/bin/stop.js"
   },
@@ -12,6 +16,7 @@
   "private": true,
   "dependencies": {
     "body-parser": "^1.19.0",
+    "cloakbrowser": "^0.3.31",
     "express": "^4.18.2",
     "file-stream-rotator": "^1.0.0",
     "https-proxy-agent": "^5.0.1",
@@ -20,9 +25,7 @@
     "node-cron": "^3.0.2",
     "node-gyp": "^9.3.1",
     "pm2": "^6.0.14",
-    "puppeteer": "^19.5.2",
-    "puppeteer-extra": "^3.3.4",
-    "puppeteer-extra-plugin-stealth": "^2.11.1",
+    "playwright-core": "^1.53.0",
     "uuid": "^9.0.0"
   }
 }

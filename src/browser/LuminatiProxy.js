@@ -1,8 +1,8 @@
-const NestiaWeb = require('nestia-web');
+import NestiaWeb from 'nestia-web';
 
 const LUMINATI_CONSOLE_PORT = 22999;
 
-module.exports = {
+export default {
     isLuminatiProxy: async function (proxyHost, proxyPort) {
         let url = `http://${proxyHost}:${LUMINATI_CONSOLE_PORT}/api/proxy_status/${proxyPort}`;
         try {

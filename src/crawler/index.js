@@ -1,13 +1,16 @@
-const jobExecutor = require('./jobExecutor');
-const seoExecutor = require('./seoExecutor');
-const StatusShot = require('./diagnostic/statusShot');
-const CaptchaCracker = require('./captchaCracker');
-const utils = require('./utils');
-const path = require('path');
-const fs = require('fs');
+import jobExecutor from './jobExecutor.js';
+import seoExecutor from './seoExecutor.js';
+import StatusShot from './diagnostic/statusShot.js';
+import CaptchaCracker from './captchaCracker.js';
+import utils from './utils.js';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath, pathToFileURL } from 'url';
 
-const Browser = require('../browser');
-const NestiaWeb = require('nestia-web');
+import Browser from '../browser/index.js';
+import NestiaWeb from 'nestia-web';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // const R = require('../misc/generReceipts');
 // const R = require('../misc/screenShot');
@@ -50,7 +53,7 @@ let resumeCraw = function (context) {
 
 let staticJobs = {};
 
-(function () {
+{
     "use strict";
     let dir = path.join(__dirname, 'staticJob');
     if (fs.existsSync(dir)) {
@@ -59,15 +62,15 @@ let staticJobs = {};
             let fullPath = path.join(dir, file);
             let fileState = fs.lstatSync(fullPath);
             if (!fileState.isDirectory() && /^.*\.js$/.test(file)) {
-                let job = require(fullPath);
+                let job = (await import(pathToFileURL(fullPath).href)).default;
                 staticJobs[job.key] = job;
             }
         }
     }
-})();
+}
 
 
-module.exports = {
+export default {
     init: function () {
         "use strict";
         StatusShot.init();

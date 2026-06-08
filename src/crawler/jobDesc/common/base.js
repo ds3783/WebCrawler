@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     initialJob: function (job) {
         job.direct_proxy = true;
         job.headlessBrowser = true;

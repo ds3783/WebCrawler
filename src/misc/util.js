@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     sleep: async function (timeout) {
         return new Promise(resolve => {
             setTimeout(() => {

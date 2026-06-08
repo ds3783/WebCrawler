@@ -1,5 +1,5 @@
-const cron = require('node-cron');
-const NestiaWeb = require('nestia-web');
+import cron from 'node-cron';
+import NestiaWeb from 'nestia-web';
 
 
 const CathyCronTimes = [
@@ -15,7 +15,7 @@ const roll = function (arr) {
     return arr[roll];
 };
 
-module.exports = {
+export default {
     init: function () {
         
     }

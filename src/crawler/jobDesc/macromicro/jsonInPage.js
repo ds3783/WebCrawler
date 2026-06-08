@@ -1,8 +1,8 @@
-const base = require('./base');
-const util = require("../../../misc/util");
+import base from './base.js';
+import util from '../../../misc/util.js';
 
 
-module.exports = Object.assign({}, base, {
+export default Object.assign({}, base, {
     isJobDesc: true,
     resultJsonObject:null,
     getNavigateOptions: function () {
