@@ -1,5 +1,5 @@
-const NestiaWeb = require("nestia-web");
-module.exports = {
+import NestiaWeb from 'nestia-web';
+export default {
     getProxyKey: function (context) {
         "use strict";
         if (!context) {

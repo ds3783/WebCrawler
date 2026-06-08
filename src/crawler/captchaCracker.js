@@ -1,13 +1,13 @@
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
 
 
-const EventEmitter = require('events').EventEmitter;
-const NestiaWeb = require('nestia-web');
-const PageFactory = require('../browser/pageFactory');
-const utils = require('./utils');
-const JobDesc = require('./jobDesc');
-const StatusShot = require('./diagnostic/statusShot');
+import { EventEmitter } from 'events';
+import NestiaWeb from 'nestia-web';
+import PageFactory from '../browser/pageFactory.js';
+import utils from './utils.js';
+import JobDesc from './jobDesc/index.js';
+import StatusShot from './diagnostic/statusShot.js';
 
 let eventEmitter = new EventEmitter();
 const JOB_TIMEOUT = 600 * 1e3;
@@ -15,7 +15,7 @@ const JOB_NETWORK_TIMEOUT = 3 * 1e3;
 const MAX_DAMA_TIMES = 3;
 const MAX_CRACK_TIMES = 3;
 
-const capchaResove = require('./capchaResolve');
+import capchaResove from './capchaResolve/index.js';
 
 let id = 0;
 let snapshotPath;
@@ -69,14 +69,14 @@ let letsDoIt = async function (job) {
     //
     // await page.setViewport({width: 1440, height: 900});
     let reqInterception = true;
-    await page.setRequestInterception(true);
+    // Playwright 通过 page.route 实现请求拦截（在 registerEvents 中设置）
 
     let lastNetworkRequest = +new Date();
 
     const jobDesc = JobDesc.getDescription(job.type);
 
     let redirecting = false;
-    let registerEvents = function () {
+    let registerEvents = async function () {
         page.removeAllListeners('load');
         page.removeAllListeners('response');
         page.removeAllListeners('request');
@@ -94,13 +94,17 @@ let letsDoIt = async function (job) {
                  // redirecting=false;
              }*/
         });
-        page.on('request', (request) => {
+        await page.route('**/*', (route) => {
+            let request = route.request();
             let result = true, reqUrl = request.url();
             if (!reqUrl.match(/:\/\/([^\/]+)\//)) {
-                return false;
+                // Playwright 下未处理的 route 会挂起请求；放行而非挂起，避免阻断页面加载
+                route.continue();
+                return;
             }
             if (reqUrl.match(/ga\d+.js/)) {
-                return false;
+                route.continue();
+                return;
             }
             // NestiaWeb.logger.info(job.id + ':captcha request+' + reqUrl, request.headers, result);
             lastNetworkRequest = +new Date();
@@ -131,17 +135,17 @@ let letsDoIt = async function (job) {
                         }
                     }
                     if (page.__context.key !== 'no-proxy' && !/^proxy_direct/.test(page.__context.key)) {
-                        promise = request.continue(
+                        promise = route.continue(
                             {
                                 url: (isHttps ? reqUrl.replace(/^https:/, 'http:') : reqUrl) + '@' + encodeURIComponent(JSON.stringify(extraHeaders)),
                                 headers: headers
                             }
                         );
                     } else {
-                        promise = request.continue();
+                        promise = route.continue();
                     }
                 } else {
-                    promise = request.response('');
+                    promise = route.abort();
                 }
 
             } else {
@@ -153,14 +157,14 @@ let letsDoIt = async function (job) {
                     "X-Proxy-Https": isHttps ? '1' : '0',
                 });
                 if (page.__context.key !== 'no-proxy' && !/^proxy_direct/.test(page.__context.key)) {
-                    promise = request.continue(
+                    promise = route.continue(
                         {
                             url: isHttps ? reqUrl.replace(/^https:/, 'http:') : reqUrl,
                             headers: headers
                         }
                     );
                 } else {
-                    promise = request.continue();
+                    promise = route.continue();
                 }
             }
             page.evaluate((viewport) => {
@@ -199,7 +203,7 @@ let letsDoIt = async function (job) {
             NestiaWeb.logger.info(job.id + ':captcha console+' + c);
         });
     };
-    registerEvents();
+    await registerEvents();
 
 
     let busy = false, interval = null;
@@ -211,13 +215,22 @@ let letsDoIt = async function (job) {
             callback(job, false, 'timeout', null, url);
             clearInterval(interval);
             await cleanJob(job, page);
-        })();
+        })().catch(async (e) => {
+            NestiaWeb.logger.error('Captcha timeout handler error:' + e.message, e);
+            busy = false;
+            clearTimeout(timeout);
+            clearInterval(interval);
+            try {
+                await cleanJob(job, page);
+            } catch (ignore) {
+            }
+        });
     }, JOB_TIMEOUT);
 
     try {
         job.status = 'starting';
         NestiaWeb.logger.info('Captcha starting:' + JSON.stringify(job, null, ''));
-        await page.goto(job.url, {waitUntil: 'networkidle0'});
+        await page.goto(job.url, {waitUntil: 'networkidle'});
         job.status = 'started';
         NestiaWeb.logger.info('Captcha started:' + JSON.stringify(job, null, ''));
     } catch (e) {
@@ -230,7 +243,7 @@ let letsDoIt = async function (job) {
         }
         callback(job, false, e.message);
         {
-            await page.setViewport({width: 1440, height: 5000});
+            await page.setViewportSize({width: 1440, height: 5000});
             let desc = StatusShot.getNewDesc();
             let url = page.url();
             let screenShotName = desc.id + '.jpg';
@@ -239,7 +252,7 @@ let letsDoIt = async function (job) {
                 type: 'jpeg',
                 quality: 65
             });
-            let cookies = await page.cookies();
+            let cookies = await page.context().cookies();
             let html = await page.evaluate(() => {
                 return document.documentElement.outerHTML;
             });
@@ -382,7 +395,7 @@ let letsDoIt = async function (job) {
                     }
                     if (busy) {
                         //WRITE LOG AND SAVE SCREEN CAPTURE
-                        await page.setViewport({width: 1440, height: 5000});
+                        await page.setViewportSize({width: 1440, height: 5000});
                         let desc = StatusShot.getNewDesc();
                         let screenShotName = desc.id + '.jpg';
                         await page.screenshot({
@@ -390,7 +403,7 @@ let letsDoIt = async function (job) {
                             type: 'jpeg',
                             quality: 65
                         });
-                        let cookies = await page.cookies();
+                        let cookies = await page.context().cookies();
                         let html = await page.evaluate(() => {
                             return document.documentElement.outerHTML;
                         });
@@ -403,12 +416,21 @@ let letsDoIt = async function (job) {
                 }
             }
             busy = false;
-        })();
+        })().catch(async (e) => {
+            NestiaWeb.logger.error('Captcha loop error:' + e.message, e);
+            busy = false;
+            clearTimeout(timeout);
+            clearInterval(interval);
+            try {
+                await cleanJob(job, page);
+            } catch (ignore) {
+            }
+        });
 
     }, 50);
 };
 
-module.exports = {
+export default {
     init: function () {
         "use strict";
         snapshotPath = NestiaWeb.manifest.get('captchaPath');

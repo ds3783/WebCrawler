@@ -1,5 +1,5 @@
-const descs = require('./descs');
-const viewports = require('./viewports');
+import descs from './descs.js';
+import viewports from './viewports.js';
 
 let probabilityMap = [], maxProbability = 0;
 
@@ -40,7 +40,7 @@ let initProbabilityMap = function () {
 initProbabilityMap();
 
 
-module.exports = {
+export default {
     getDesc() {
         "use strict";
         return Object.assign({}, randomDesc(), randomViewport());

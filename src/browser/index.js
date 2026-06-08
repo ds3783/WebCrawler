@@ -1,10 +1,10 @@
-const BrowserFactory = require('./browserFactory');
-const NestiaWeb = require('nestia-web');
+import BrowserFactory from './browserFactory.js';
+import NestiaWeb from 'nestia-web';
 
 let initialized = false;
 let browserInitCallbacks = {};
 
-module.exports = {
+export default {
     init: async function () {
         await BrowserFactory.init(function (key) {
             NestiaWeb.logger.info(`Browser[${key}] initialized`);

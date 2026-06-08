@@ -1,7 +1,7 @@
-const PageFactory = require("../browser/pageFactory");
-const utils = require("./utils");
-const NestiaWeb = require("nestia-web");
-const uuid = require("uuid");
+import PageFactory from '../browser/pageFactory.js';
+import utils from './utils.js';
+import NestiaWeb from 'nestia-web';
+import * as uuid from 'uuid';
 
 function randomStr(length) {
     "use strict";
@@ -230,6 +230,6 @@ async function start(context) {
 }
 
 
-module.exports = {
+export default {
     start: start
 } 

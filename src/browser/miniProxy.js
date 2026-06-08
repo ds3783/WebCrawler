@@ -1,10 +1,10 @@
-const http = require('http');
-const https = require('https');
-const net = require('net');
-const EventEmitter = require('events');
-const NestiaWeb = require('nestia-web');
-const utils = require('../crawler/utils');
-const HttpsProxyAgent = require('https-proxy-agent');
+import http from 'http';
+import https from 'https';
+import net from 'net';
+import EventEmitter from 'events';
+import NestiaWeb from 'nestia-web';
+import utils from '../crawler/utils.js';
+import HttpsProxyAgent from 'https-proxy-agent';
 
 const agentConfig = {
   keepAlive: true,
@@ -305,7 +305,7 @@ _process(request, response) {
   }
 }
 
-module.exports = {
+export default {
   createProxy: function (port) {
     "use strict";
     showLog = NestiaWeb.manifest.get('proxyLog');

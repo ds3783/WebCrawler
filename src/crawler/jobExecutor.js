@@ -1,12 +1,12 @@
-const path = require('path');
-const NestiaWeb = require("nestia-web");
-const EventEmitter = require('events').EventEmitter;
-const PageFactory = require('../browser/pageFactory');
-const Browser = require('../browser');
-const Luminati = require('../browser/LuminatiProxy');
-const StatusShot = require('./diagnostic/statusShot');
-const JobDesc = require('./jobDesc');
-const utils = require('./utils');
+import path from 'path';
+import NestiaWeb from 'nestia-web';
+import { EventEmitter } from 'events';
+import PageFactory from '../browser/pageFactory.js';
+import Browser from '../browser/index.js';
+import Luminati from '../browser/LuminatiProxy.js';
+import StatusShot from './diagnostic/statusShot.js';
+import JobDesc from './jobDesc/index.js';
+import utils from './utils.js';
 const JOB_TIMEOUT = 60 * 1e3;
 const JOB_NETWORK_TIMEOUT = 6e3;
 
@@ -61,7 +61,7 @@ async function callback(job, page, success, message, result, url) {
             case'CLEAR_COOKIE':
                 if (page) {
                     NestiaWeb.logger.info(`Clearing browser cookie [${job.proxy_host}, ${job.proxy_port}] [${page.__context.key}] [${page.__context.id}]`);
-                    await page._client.send('Network.clearBrowserCookies');
+                    await page.context().clearCookies();
                 }
                 break;
             default:
@@ -124,9 +124,8 @@ async function doJob(job, ctx) {
 
     }
     // await page.setUserAgent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 Safari/537.36');
-    // await page.setViewport({width: 1440, height: 900});
-    // 设置页面拦截器
-    await page.setRequestInterception(false);
+    // await page.setViewportSize({width: 1440, height: 900});
+    // Playwright 默认放行所有请求，无需显式关闭请求拦截
 
     let lastNetworkRequest = +new Date(),
         networking = {};
@@ -172,7 +171,9 @@ async function doJob(job, ctx) {
                                     }
                                 }
                                 try {
-                                    await page.deleteCookie.apply(page, cookies);
+                                    for (let c of cookies) {
+                                        await page.context().clearCookies({name: c.name});
+                                    }
                                 } catch (e) {
                                     NestiaWeb.logger.error('Error delete cookies:' + e.message, cookies, e);
                                 }
@@ -340,7 +341,7 @@ async function doJob(job, ctx) {
                 await callback(job, page, false, 'JobTimeout', null, url);
 
                 //WRITE LOG AND SAVE SCREEN CAPTURE
-                await page.setViewport({
+                await page.setViewportSize({
                     width: 1440,
                     height: 5000
                 });
@@ -351,7 +352,7 @@ async function doJob(job, ctx) {
                     type: 'jpeg',
                     quality: 65
                 });
-                let cookies = await page.cookies();
+                let cookies = await page.context().cookies();
                 let html = await page.evaluate(() => {
                     return document.documentElement.outerHTML;
                 });
@@ -365,7 +366,18 @@ async function doJob(job, ctx) {
             clearInterval(interval);
             interval = null;
             await cleanJob(job, page);
-        })();
+        })().catch(async (e) => {
+            // 兜底：超时处理过程中页面/上下文可能已被关闭，捕获异常并清理，避免未捕获 Promise 崩溃进程
+            NestiaWeb.logger.error('Job timeout handler error:' + e.message, e);
+            busy = false;
+            clearTimeout(timeout);
+            clearInterval(interval);
+            interval = null;
+            try {
+                await cleanJob(job, page);
+            } catch (ignore) {
+            }
+        });
     }, JOB_TIMEOUT);
 
     try {
@@ -374,7 +386,7 @@ async function doJob(job, ctx) {
         NestiaWeb.logger.info('Job inited:' + JSON.stringify(job, null, ''));
         await jobDesc.setPageContext(page);
         NestiaWeb.logger.info('Job starting:' + JSON.stringify(job, null, ''));
-        let navigateOptions = (jobDesc.getNavigateOptions && jobDesc.getNavigateOptions(job)) || {waitUntil: 'networkidle0'};
+        let navigateOptions = (jobDesc.getNavigateOptions && jobDesc.getNavigateOptions(job)) || {waitUntil: 'networkidle'};
         await page.goto(job.url, navigateOptions);
         job.status = 'started';
         NestiaWeb.logger.info('Job started:' + JSON.stringify(job, null, ''));
@@ -462,7 +474,7 @@ async function doJob(job, ctx) {
                             await callback(job, page, false, 'Unknown error,browser didn\'t get result,maybe type is wrong?', null, url);
 
                             //WRITE LOG AND SAVE SCREEN CAPTURE
-                            await page.setViewport({
+                            await page.setViewportSize({
                                 width: 1440,
                                 height: 5000
                             });
@@ -473,7 +485,7 @@ async function doJob(job, ctx) {
                                 type: 'jpeg',
                                 quality: 65
                             });
-                            let cookies = await page.cookies();
+                            let cookies = await page.context().cookies();
                             let html = await page.evaluate(() => {
                                 return document.documentElement.outerHTML;
                             });
@@ -495,13 +507,24 @@ async function doJob(job, ctx) {
                 }
             }
             busy = false;
-        })();
+        })().catch(async (e) => {
+            // 兜底：轮询过程中页面/上下文可能已被关闭，捕获异常并清理，避免未捕获 Promise 崩溃进程
+            NestiaWeb.logger.error('Job loop error:' + e.message, e);
+            busy = false;
+            clearTimeout(timeout);
+            clearInterval(interval);
+            interval = null;
+            try {
+                await cleanJob(job, page);
+            } catch (ignore) {
+            }
+        });
 
     }, 50);
 }
 
 
-module.exports = {
+export default {
     listJobs: function () {
         "use strict";
         return jobs;

@@ -1,10 +1,13 @@
-const puppeteer = require('puppeteer-extra');
-const NestiaWeb = require('nestia-web');
-const fs = require('fs');
-const path = require('path');
-const BrowserDesc = require('./browserDesc');
-const uuid = require('uuid');
-const Luminati = require('./LuminatiProxy');
+import { launchPersistentContext } from 'cloakbrowser';
+import NestiaWeb from 'nestia-web';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import BrowserDesc from './browserDesc/index.js';
+import * as uuid from 'uuid';
+import Luminati from './LuminatiProxy.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uuidv1 = uuid.v1;
 
 // a browser survive max for 7 minutes
@@ -15,10 +18,6 @@ let browserCache = {};
 let staticBrowser = {};
 
 let staticBrowserMapping = {};
-
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-puppeteer.use(StealthPlugin());
-const {executablePath} = require('puppeteer')
 
 
 /*
@@ -108,13 +107,25 @@ const generateBrowserParameter = async function (job) {
         browserDesc.viewport = job.viewport;
     }
     args.push('--n-id=' + key);
+    // CloakBrowser native proxy option (replaces --proxy-server Chromium flag)
+    let proxy;
     if (job.proxy_host && job.proxy_port) {
         if (!job.direct_proxy) {
             useLocalProxy = true;
-            args.push('--proxy-server=http://' + '127.0.0.1' + ':' + NestiaWeb.manifest.get('proxyPort'));
+            proxy = 'http://127.0.0.1:' + NestiaWeb.manifest.get('proxyPort');
         } else {
-            args.push('--proxy-server=http://' + job.proxy_host + ':' + job.proxy_port);
+            proxy = 'http://' + job.proxy_host + ':' + job.proxy_port;
         }
+    }
+    // Explicit WebRTC IP (no network call): make WebRTC report the proxy exit IP instead of the
+    // real one. Prefer an explicit job.webrtcIp; otherwise fall back to a direct proxy host when it
+    // is an IPv4 (the 127.0.0.1 local proxy's real exit IP is unknown at launch, so it is skipped).
+    let webrtcIp = job.webrtcIp;
+    if (!webrtcIp && job.direct_proxy && job.proxy_host && /^\d{1,3}(\.\d{1,3}){3}$/.test(job.proxy_host)) {
+        webrtcIp = job.proxy_host;
+    }
+    if (webrtcIp) {
+        args.push('--fingerprint-webrtc-ip=' + webrtcIp);
     }
     args.push('--cast-initial-screen-width=' + browserDesc.viewport.width);
     args.push('--cast-initial-screen-height=' + browserDesc.viewport.height);
@@ -159,12 +170,33 @@ const generateBrowserParameter = async function (job) {
         headless,
         browserDesc,
         cmdArguments: args,
+        proxy,
         context: ctx
     }
 };
 
+/*
+* 使用 CloakBrowser 的 Playwright launchPersistentContext 创建一个持久化上下文。
+* 在 Playwright 模型下，UA / viewport / proxy 在 context 级别固定，page 自动继承；
+* 因此返回的 context 充当原先 "browser" 的角色（newPage / pages / close 等接口一致）。
+* */
+const launchContextFor = function (parameters, dataDir) {
+    return launchPersistentContext({
+        userDataDir: dataDir,
+        headless: parameters.headless,
+        args: parameters.cmdArguments,
+        userAgent: parameters.context.ua,
+        viewport: parameters.context.viewport,
+        ...(parameters.proxy ? {proxy: parameters.proxy} : {}),
+        // ignoreHTTPSErrors 通过 Playwright context 选项透传（替代旧的 acceptInsecureCerts）
+        contextOptions: {ignoreHTTPSErrors: true},
+        // 由应用自行管理关闭流程，禁止浏览器响应进程信号（保持旧 handleSIGINT:false 行为）
+        launchOptions: {handleSIGINT: false, handleSIGTERM: false, handleSIGHUP: false},
+    });
+};
 
-module.exports = {
+
+export default {
     init: async function (staticBrowserCb) {
         "use strict";
         let $this = this;
@@ -192,7 +224,8 @@ module.exports = {
                                 NestiaWeb.logger.error('Error closing browser[' + key + ']', e);
                             });
                         } else {
-                            browser.pages().then(async function (pageArr) {
+                            // Playwright 的 context.pages() 返回同步数组；用 Promise.resolve 兼容旧的 .then 写法
+                            Promise.resolve(browser.pages()).then(async function (pageArr) {
                                 if (browserContext.proxyProvider === 'LUMINATI' && (Date.now() - browserContext.initialTime < 7200000)) {
                                     //preserve LUMINATI instances for 2hours
                                     return;
@@ -298,14 +331,8 @@ module.exports = {
 
 
                             let dataDir = path.join(__dirname, '..', '..', 'chromeData', parameters.id);
-                            // 创建新浏览器实例
-                            let b = await puppeteer.launch({
-                                args: parameters.cmdArguments,
-                                userDataDir: dataDir,
-                                handleSIGINT: false,
-                                headless: parameters.headless,
-                                executablePath: executablePath(),
-                            });
+                            // 创建新浏览器实例（持久化上下文）
+                            let b = await launchContextFor(parameters, dataDir);
                             b.__key = parameters.key;
                             b.__newPage = b.newPage;
                             b.newPage = function () {
@@ -374,14 +401,7 @@ module.exports = {
                     // cache未命中，创建新浏览器实例
                     let dataDir = path.join(__dirname, '..', '..', 'chromeData', parameters.id);
                     NestiaWeb.logger.info('Start launch browser[' + parameters.cmdArguments.join(',') + '] with dataDir[' + dataDir + '], headless[' + parameters.headless + ']');
-                    puppeteer.launch({
-                        ignoreHTTPSErrors: true,
-                        args: parameters.cmdArguments,
-                        userDataDir: dataDir,
-                        handleSIGINT: false,
-                        headless: parameters.headless ? 'true' : false,
-                        executablePath: executablePath(),
-                    }).then(b => {
+                    launchContextFor(parameters, dataDir).then(b => {
                         b.__key = parameters.key;
                         b.__newPage = b.newPage;
                         b.newPage = function () {

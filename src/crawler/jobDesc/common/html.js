@@ -1,8 +1,8 @@
-const base = require('./base');
-const util = require("../../../misc/util");
+import base from './base.js';
+import util from '../../../misc/util.js';
 
 
-module.exports = Object.assign({}, base, {
+export default Object.assign({}, base, {
     isJobDesc: true,
     getNavigateOptions: function () {
         return {waitUntil: 'domcontentloaded'};
@@ -11,7 +11,9 @@ module.exports = Object.assign({}, base, {
         let timeout = Date.now() + 200000;
         while (Date.now() < timeout) {
             let valid = await page.evaluate(() => {
-                return 'complete' === document.readyState || (document.body && document.body.innerText);
+                let done= 'complete' === document.readyState || (document.body && document.body.innerText);
+                let hasNode=document.querySelector('div.crawler');
+                return done&&hasNode;
             });
             if (valid) {
                 return true;

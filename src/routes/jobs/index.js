@@ -1,6 +1,6 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const NestiaWeb = require('nestia-web');
+import NestiaWeb from 'nestia-web';
 
 
 router.get('/status', function (req, res) {
@@ -234,5 +234,5 @@ router.post('/static', function (req, res) {
     }
 });
 
-module.exports = router;
+export default router;
 

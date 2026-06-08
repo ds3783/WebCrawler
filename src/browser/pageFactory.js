@@ -1,8 +1,8 @@
-const NestiaWeb = require('nestia-web');
-const Browser = require('./index');
+import NestiaWeb from 'nestia-web';
+import Browser from './index.js';
 
 
-module.exports = {
+export default {
   getPage: async function (job) {
     "use strict";
     //相对getStaticPage, getPage 借用的浏览器实例在一段时间后将会被销毁。
@@ -25,11 +25,13 @@ module.exports = {
         let page = this, args = arguments;
         if (
           /Cannot find context with specified id undefined/.test(e.message)
-          || /Execution context was destroyed, most likely because of a navigation/.test(e.message)) {
+          || /Execution context was destroyed/.test(e.message)) {
           process.nextTick(function () {
-            page.evaluate.apply(page, args);
+            page.evaluate.apply(page, args).catch(function () {});
           });
-        } else if (/Target closed/.test(e.message)) {
+        } else if (/Target closed|has been closed/.test(e.message)) {
+          // Playwright: "Target page, context or browser has been closed" —
+          // 页面/上下文/浏览器已关闭，标记实例不可用并安静返回，避免未捕获异常导致进程崩溃
           await BrowserFactory.markUnavailable(page.__context.key, page.__context.id, true);
         } else if (/Session closed/.test(e.message)) {
           //do nothing
@@ -69,11 +71,10 @@ module.exports = {
       }
 
     });
-    await page.setUserAgent(page.__context.ua);
-    await page.setViewport(page.__context.viewport);
+    // UA / viewport 已在 launchPersistentContext 的 context 级别固定，page 自动继承（Playwright 无 page.setUserAgent/setViewport）
     // 为页面设置指定的宽度高度，以及chrome的内部变量
     let setHackAttributes = function () {
-      page.evaluate((viewport, props) => {
+      page.evaluate(({viewport, props}) => {
         window.__defineGetter__('innerWidth', function () {
           return viewport.width;
         });
@@ -117,7 +118,7 @@ module.exports = {
           }
 
         }
-      }, page.__context.viewport, page.__context.properties).then(() => {
+      }, {viewport: page.__context.viewport, props: page.__context.properties}).then(() => {
       }).catch(async (e) => {
         if (/Target closed/.test(e.message)) {
           // 如果target closed，说明页面已经被意外关闭，大概率是因为浏览器崩溃，或者puppeteer内部错误，此时关闭浏览器是最佳选择。
@@ -162,20 +163,21 @@ module.exports = {
       } catch (e) {
         let page = this, args = arguments;
         if (
-          /Execution context was destroyed, most likely because of a navigation./.test(e.message)
+          /Execution context was destroyed/.test(e.message)
           || /Cannot find context with specified id undefined/.test(e.message)
         ) {
           process.nextTick(function () {
-            page.evaluate.apply(page, args);
+            page.evaluate.apply(page, args).catch(function () {});
           });
+        } else if (/Target closed|has been closed|Session closed/.test(e.message)) {
+          // 页面/上下文已关闭，安静返回，避免未捕获异常导致进程崩溃
         } else {
           throw e;
         }
       }
     }).bind(page);
 
-    //设置消息拦截
-    await page.setRequestInterception(true);
+    // Playwright 默认放行所有请求，无需 setRequestInterception；下面的 'request' 监听仅用于刷新指纹属性
     await page.setExtraHTTPHeaders({
       'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,zh-TW;q=0.7',
     });
@@ -208,12 +210,9 @@ module.exports = {
       }
 
     });
-    //设置指定的浏览器参数
-    await page.setUserAgent(page.__context.ua);
-    await page.setViewport(page.__context.viewport);
-
+    // UA / viewport 已在 context 级别固定，page 自动继承
     let setHackAttributes = function () {
-      page.evaluate((viewport, props) => {
+      page.evaluate(({viewport, props}) => {
         window.__defineGetter__('innerWidth', function () {
           return viewport.width;
         });
@@ -257,7 +256,7 @@ module.exports = {
           }
 
         }
-      }, page.__context.viewport, page.__context.properties).then(() => {
+      }, {viewport: page.__context.viewport, props: page.__context.properties}).then(() => {
       }).catch((e) => {
         if (!/Session closed|Target closed/.test(e.message)) {
           NestiaWeb.logger.error('Error fake resolution:' + e.message, e);

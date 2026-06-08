@@ -1,6 +1,6 @@
-const crypto = require('crypto');
-const fs = require('fs');
-const NestiaWeb = require('nestia-web');
+import crypto from 'crypto';
+import fs from 'fs';
+import NestiaWeb from 'nestia-web';
 
 // const baseUrl = 'http://api.dama2.com:7766/app/';
 const baseUrl = 'http://dama2proxy.com/app/';
@@ -32,7 +32,7 @@ let getSign = function (binaryData) {
     return md5sum.digest('hex').substr(0, 8);
 };
 
-module.exports = {
+export default {
     resolve: async function (captcha) {
         "use strict";
         let binaryData = fs.readFileSync(captcha);

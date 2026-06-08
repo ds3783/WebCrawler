@@ -1,4 +1,4 @@
-const NestiaWeb = require('nestia-web');
+import NestiaWeb from 'nestia-web';
 
 const DefaultOpts = {
     name: '',
@@ -173,7 +173,7 @@ Pool.prototype._validate = async function (item) {
 };
 
 
-module.exports = {
+export default {
     createPool: function (opts) {
         return new Pool(opts);
     }

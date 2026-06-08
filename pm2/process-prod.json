@@ -2,7 +2,7 @@
     "apps": [
         {
             "name": "WebCrawler",
-            "script": "./src/bin/www",
+            "script": "./src/bin/www.js",
             "watch": false,
             "instances": 1,
             "exec_mode": "fork",

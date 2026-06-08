@@ -1,5 +1,8 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const alias = {
 
@@ -23,21 +26,21 @@ const defaultDesc = {
 };
 */
 
-(function () {
+{
   "use strict";
   let currentDir = __dirname;
 
-  function iterate(dir) {
+  async function iterate(dir) {
     let files = fs.readdirSync(dir);
     for (let file of files) {
       let fullPath = path.join(dir, file);
       let fileState = fs.lstatSync(fullPath);
       if (fileState.isDirectory()) {
-        iterate(fullPath);
-      } else if (/^.*\.js$/.test(file)) {
+        await iterate(fullPath);
+      } else if (/^.*\.js$/.test(file) && file !== 'index.js') {
         let shortName = file.replace(/\.js$/, '');
         let relative = path.relative(currentDir, dir);
-        let keys = relative.split('/');
+        let keys = relative.split(path.sep).filter(Boolean);
         let descObj = descriptions;
         for (let kName of keys) {
           if (!descObj.hasOwnProperty(kName)) {
@@ -45,19 +48,19 @@ const defaultDesc = {
           }
           descObj = descObj[kName];
         }
-        let desc = require(fullPath);
-        if (desc.isJobDesc) {
+        let desc = (await import(pathToFileURL(fullPath).href)).default;
+        if (desc && desc.isJobDesc) {
           descObj[shortName] = desc;
         }
       }
     }
   }
 
-  iterate(currentDir);
-})();
+  await iterate(currentDir);
+}
 
 
-module.exports = {
+export default {
   getDescription: function (type) {
     "use strict";
     let name = type;

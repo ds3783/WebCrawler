@@ -1,20 +1,25 @@
-const path = require('path');
-const fs = require('fs');
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath, pathToFileURL } from 'url';
 
-const express = require('express');
-const bodyParser = require('body-parser');
+import express from 'express';
+import bodyParser from 'body-parser';
 //var routerConfig = require('./routeConfig');
 
-const FileStreamRotator = require('file-stream-rotator');
-const morgan = require('morgan');
+import FileStreamRotator from 'file-stream-rotator';
+import morgan from 'morgan';
+
+import crawler from './crawler/index.js';
+import Browser from './browser/index.js';
+
+import MiniProxy from './browser/miniProxy.js';
+
+import CronCrawler from './cronCrawler/index.js';
+
+import NestiaWeb from 'nestia-web';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-
-const crawler = require('./crawler');
-const Browser = require('./browser');
-
-const MiniProxy = require('./browser/miniProxy');
-
-const CronCrawler = require('./cronCrawler');
 
 
 let initLogParam = function () {
@@ -85,7 +90,6 @@ let initLogParam = function () {
 };
 let logParam = initLogParam();
 
-let NestiaWeb = require('nestia-web');
 NestiaWeb.init({
     EXPRESS_APP: app,
     ENV: process.env.MANIFEST,
@@ -135,27 +139,27 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({limit: '10mb', extended: false}));
 
 
-(function () {
+{
     "use strict";
     let routesRoot = path.join(__dirname, 'routes');
 
-    function iteratePath(dir) {
+    async function iteratePath(dir) {
         let files = fs.readdirSync(dir);
 
         for (let file of files) {
             let fileFullPath = path.join(dir, file);
             let fState = fs.lstatSync(fileFullPath);
             if (fState.isDirectory()) {
-                iteratePath(fileFullPath);
+                await iteratePath(fileFullPath);
             } else if (fState.isFile() && file === 'index.js') {
-                let route = require(fileFullPath);
+                let route = (await import(pathToFileURL(fileFullPath).href)).default;
                 app.use('/' + path.relative(routesRoot, dir), route);
             }
         }
     }
 
-    iteratePath(routesRoot);
-})();
+    await iteratePath(routesRoot);
+}
 
 
 app.use('*/healthcheck.html', express.static(path.join(__dirname, '../healthcheck.html'), {
@@ -251,4 +255,4 @@ if (crawler && crawler.init) {
     app.locals.crawler = crawler;
 }
 
-module.exports = app;
+export default app;
